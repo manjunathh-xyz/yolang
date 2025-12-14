@@ -1,0 +1,35 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ main ]
+  release:
+    types: [ published ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm run build
+      - run: node dist/cli.js run examples/hello.yo
+      - run: node dist/cli.js run examples/test.yo
+
+  publish:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm run build
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
