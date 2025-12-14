@@ -1,21 +1,21 @@
 # Errors
 
-Kexra provides clear, helpful error messages to assist with debugging and learning. This page explains the error system and common issues.
+Kexra provides clear, helpful error messages to assist with debugging and learning.
 
 ## Error Philosophy
 
-Kexra errors are designed to be:
+Errors are designed to be:
 
 - **Clear**: Easy to understand what went wrong
-- **Helpful**: Include suggestions for fixing the problem
+- **Helpful**: Include suggestions for fixing issues
 - **Educational**: Explain programming concepts
-- **Non-fatal**: Don't crash the entire program when possible
+- **Non-fatal**: Don't crash unnecessarily
 
 ## Error Types
 
 ### SyntaxError
 
-Syntax errors occur when the code doesn't follow Kexra's grammar rules:
+Syntax errors occur when code doesn't follow grammar rules:
 
 ```bash
 kex run broken.kx
@@ -34,45 +34,44 @@ Hint: Use "=" for assignment, not "=="
 
 Common causes:
 - Missing keywords
-- Incorrect operator usage
-- Malformed function calls
-- Unmatched parentheses or braces
+- Incorrect operators
+- Malformed expressions
+- Unmatched braces
 
 ### RuntimeError
 
-Runtime errors happen during program execution:
+Runtime errors happen during execution:
 
 ```bash
-kex> say undefinedVar
+kex> say undefined_var
 ```
 
 ```
 ❌ RuntimeError
-Undefined variable 'undefinedVar'
+Undefined variable 'undefined_var'
 Make sure the variable is defined before use
 ```
 
 Common causes:
-- Using undefined variables
-- Type mismatches in operations
+- Undefined variables
+- Type mismatches
 - Invalid function arguments
-- Division by zero (future feature)
 
 ## Error Format
 
 All errors include:
 
-- **Error type**: SyntaxError or RuntimeError
+- **Type**: SyntaxError or RuntimeError
 - **Location**: File name and line number
-- **Code snippet**: The problematic line with a pointer (^)
+- **Code snippet**: Problematic line with pointer (^)
 - **Hint**: Suggestion for fixing the error
 
 ## Common Mistakes
 
-### Forgetting to Define Variables
+### Undefined Variables
 
 ```kx
-say x  # Error: undefined variable
+say x  # Error: undefined
 ```
 
 **Fix**: Define variables before use:
@@ -85,10 +84,10 @@ say x
 ### Incorrect Assignment
 
 ```kx
-set x == 10  # Error: unexpected ==
+set x == 10  # Error
 ```
 
-**Fix**: Use single `=` for assignment:
+**Fix**: Use single `=`:
 
 ```kx
 set x = 10
@@ -97,17 +96,17 @@ set x = 10
 ### Missing Function Definitions
 
 ```kx
-say myFunction()  # Error: undefined function
+say my_func()  # Error: undefined function
 ```
 
-**Fix**: Define functions before calling them:
+**Fix**: Define functions before calling:
 
 ```kx
-fn myFunction() {
+fn my_func() {
   return "Hello"
 }
 
-say myFunction()
+say my_func()
 ```
 
 ### Scope Issues
@@ -118,58 +117,40 @@ fn test() {
 }
 
 test()
-say local  # Error: undefined variable
+say local  # Error: undefined
 ```
 
-**Fix**: Variables defined in functions are local:
-
-```kx
-fn test() {
-  set local = "inside"
-  say local  # This works
-}
-
-test()
-```
-
-### Type Errors
-
-```kx
-set result = "hello" + 123  # This works (string concatenation)
-set result = 123 - "hello"  # Error: invalid operands
-```
-
-**Fix**: Ensure compatible types for operations.
+**Fix**: Variables inside functions are local.
 
 ## Debugging Tips
 
-1. **Read the error message carefully** - it often tells you exactly what's wrong
-2. **Check line numbers** - errors point to the specific problematic line
-3. **Look at the hint** - suggestions are provided when possible
-4. **Use the REPL** - test small pieces of code interactively
-5. **Check variable definitions** - ensure variables are defined in the right scope
+1. **Read the error message** carefully
+2. **Check line numbers** for location
+3. **Look at the hint** for suggestions
+4. **Use the REPL** to test small pieces
+5. **Verify variable definitions** and scope
 
 ## Error Recovery
 
-In the REPL, errors don't stop execution - you can continue working:
+In the REPL, errors don't stop execution:
 
 ```bash
 kex> say undefined
 ❌ RuntimeError: Undefined variable 'undefined'
-kex> say "Still working!"
-Still working!
+kex> say "Continue working"
+Continue working
 ```
 
-In files, the first error stops execution. Fix errors one at a time.
+In files, fix errors one at a time.
 
 ## Best Practices
 
 - Define variables before use
-- Define functions before calling them
-- Use descriptive variable names to avoid typos
-- Test code in the REPL before putting it in files
-- Read error messages and hints carefully
+- Define functions before calling
+- Use descriptive names to avoid typos
+- Test code in the REPL first
+- Read error messages and hints
 
 ## Next Steps
 
-Learn about the [CLI](cli.md) to understand how to run files and get help with commands.
+Learn about [project structure](project-structure.md) for organizing code.

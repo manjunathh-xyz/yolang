@@ -1,10 +1,10 @@
 # Variables
 
-Variables in Kexra store values that can be used and modified throughout your program.
+Variables store values that can be used and modified throughout your program.
 
 ## Declaring Variables
 
-Use the `set` keyword to create a variable and assign it a value:
+Use `set` to create a variable and assign a value:
 
 ```kx
 set name = "Alice"
@@ -12,22 +12,20 @@ set age = 25
 set pi = 3.14159
 ```
 
-Variable names must be unique within their scope and follow identifier rules.
+## Data Types
 
-## Types
-
-Kexra has two main types:
+Kexra supports two main types:
 
 ### Numbers
 
-Numbers are written as digits, optionally with a decimal point:
+Numbers are written as digits, optionally with decimals:
 
 ```kx
 set integer = 42
 set float = 3.14
 ```
 
-Numbers support basic arithmetic operations.
+Numbers support arithmetic operations.
 
 ### Strings
 
@@ -38,31 +36,40 @@ set greeting = "Hello, World!"
 set name = "Kexra"
 ```
 
-Strings can be concatenated with the `+` operator:
+Strings can be concatenated with `+`:
 
 ```kx
-set fullGreeting = greeting + " My name is " + name
+set message = greeting + " My name is " + name
 ```
 
 ## Variable Scope
 
-Variables are accessible within the scope where they're defined:
+Variables exist within the scope where they're defined:
 
-- **Global scope**: Variables defined at the top level are accessible everywhere
-- **Function scope**: Variables defined inside functions are local to that function
+### Global Scope
+
+Variables at the top level are accessible everywhere:
 
 ```kx
-set globalVar = "I'm global"
+set global_var = "I'm global"
 
-fn myFunction() {
-  set localVar = "I'm local"
-  say globalVar  # Works
-  say localVar   # Works
+fn test() {
+  say global_var  # Works
+}
+```
+
+### Local Scope
+
+Variables inside functions are local to that function:
+
+```kx
+fn test() {
+  set local_var = "I'm local"
+  say local_var  # Works
 }
 
-myFunction()
-say globalVar  # Works
-say localVar   # Error: undefined variable
+test()
+say local_var   # Error: undefined variable
 ```
 
 ## Reassignment
@@ -71,7 +78,7 @@ Variables can be reassigned to new values:
 
 ```kx
 set counter = 0
-set counter = counter + 1  # counter is now 1
+set counter = counter + 1  # Now 1
 ```
 
 ## Using Variables
@@ -85,12 +92,29 @@ set sum = x + y
 say sum  # Outputs: 30
 ```
 
-## Best Practices
+## Common Mistakes
 
-- Use descriptive variable names
-- Initialize variables before use
-- Be aware of scope when defining variables in functions
+### Using Undefined Variables
+
+```kx
+say undefined_var  # Error
+```
+
+**Fix:** Define variables before use.
+
+### Scope Confusion
+
+```kx
+fn test() {
+  set x = 10
+}
+
+test()
+say x  # Error: x is local to test()
+```
+
+**Fix:** Understand scope rules.
 
 ## Next Steps
 
-Learn about [functions](functions.md) to organize your code into reusable blocks.
+Learn about [functions](functions.md) to organize code into reusable blocks.

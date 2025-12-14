@@ -1,43 +1,18 @@
 # Getting Started
 
-This guide will help you install Kexra and run your first program.
+This guide will walk you through writing and running your first Kexra program.
 
-## Installation
+## Hello World
 
-Kexra requires Node.js (version 14 or higher). You can install it globally using npm:
-
-```bash
-npm install -g kexra
-```
-
-This makes the `kex` command available in your terminal.
-
-### From Source
-
-If you prefer to build from source:
-
-```bash
-git clone https://github.com/manjunathh-xyz/kexra.git
-cd kexra
-npm install
-npm run build
-```
-
-Then you can run it locally with:
-
-```bash
-node dist/cli.js
-```
-
-## Your First Program
-
-Create a file called `hello.kx` with the following content:
+Create a new file called `hello.kx` with this content:
 
 ```kx
-say "Hello, Kexra!"
+say "Hello, World!"
 ```
 
-Run it with:
+## Running Your Program
+
+Open a terminal and run:
 
 ```bash
 kex run hello.kx
@@ -46,38 +21,18 @@ kex run hello.kx
 You should see:
 
 ```
-🚀 Kexra v0.4.1
+🚀 Kexra v0.4.2
 Running: hello.kx
 ──────────────────────────
-Hello, Kexra!
+Hello, World!
 ```
 
-## Using the REPL
+## Understanding the Code
 
-Kexra includes an interactive Read-Eval-Print Loop (REPL) for experimenting:
-
-```bash
-kex repl
-```
-
-```
-🎧 Kexra REPL v0.4.1
-Type 'help' for commands, 'exit' to quit
-kex> set message = "Hello from REPL!"
-kex> say message
-Hello from REPL!
-kex> exit
-Goodbye!
-```
-
-The REPL is great for testing small snippets and learning the language interactively.
+- `say` is a built-in command that outputs text
+- Strings are enclosed in double quotes
+- Each statement ends with a newline
 
 ## Next Steps
 
-Now that you have Kexra installed, you can:
-
-- Explore the [syntax](syntax.md) basics
-- Learn about [variables](variables.md)
-- Try writing [functions](functions.md)
-
-Check out the [examples](../examples/) directory in the repository for more sample programs.
+Now that you can run programs, learn about [installation](installation.md) or explore [language basics](language-basics.md).

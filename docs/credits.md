@@ -1,6 +1,6 @@
 # Credits
 
-Kexra is an open-source project built by the community. This page acknowledges the contributors and inspirations behind the language.
+Kexra is an open-source project built by the community. This page acknowledges contributors and inspirations.
 
 ## Core Team
 
@@ -8,7 +8,6 @@ Kexra is an open-source project built by the community. This page acknowledges t
 - **Role**: Core Developer, Language Design, Architecture
 - **Contributions**: Initial implementation, parser, interpreter, CLI, REPL
 - **GitHub**: [@manjunathh-xyz](https://github.com/manjunathh-xyz)
-- **Website**: [manjunathh-xyz.github.io](https://manjunathh-xyz.github.io)
 
 ### Ramkrishna
 - **Role**: Core Contributor, Tooling & Design Support
@@ -17,75 +16,71 @@ Kexra is an open-source project built by the community. This page acknowledges t
 
 ## Project History
 
-Kexra began as a personal project to explore programming language design. What started as a simple experiment has grown into a community-driven educational tool.
+Kexra began as an educational project to explore programming language design. What started as a simple experiment has grown into a comprehensive learning tool.
 
 ### Milestones
 
-- **v0.1.0** (2025-12-14): Initial release with basic syntax
-- **v0.2.0** (2025-12-14): REPL and improved CLI
-- **v0.3.0** (2025-12-14): Official website and documentation
-- **v0.4.0** (2025-12-14): User-defined functions
-- **v0.4.1** (2025-12-14): Documentation unification
+- **v0.1.0**: Initial release with basic syntax
+- **v0.2.0**: REPL and improved CLI
+- **v0.3.0**: Official website and documentation
+- **v0.4.0**: User-defined functions
+- **v0.4.1**: Documentation unification
+- **v0.4.2**: Complete documentation rebuild
 
 ## Inspirations
 
-Kexra draws inspiration from many programming languages and educational projects:
+Kexra draws inspiration from:
 
 ### Languages
-- **Python**: Simple, readable syntax
-- **JavaScript**: Dynamic typing, flexible expressions
-- **Lua**: Lightweight, embeddable design
+- **Python**: Clean, readable syntax
+- **JavaScript**: Dynamic and flexible
+- **Lua**: Lightweight design
 - **Ruby**: Developer-friendly philosophy
 
 ### Educational Projects
 - **Crafting Interpreters** by Robert Nystrom
+- **Write an Interpreter in Go** by Thorsten Ball
 - **Language Implementation Patterns** by Terence Parr
-- **Build Your Own Lisp** by Daniel Holden
-- **Writing An Interpreter In Go** by Thorsten Ball
 
 ## Technology Stack
 
-Kexra is built using modern web technologies:
-
-- **TypeScript**: Type-safe JavaScript for robust development
+- **TypeScript**: Type-safe development
 - **Node.js**: Cross-platform runtime
-- **NPM**: Package management and distribution
-- **GitHub Pages**: Website hosting
+- **NPM**: Package distribution
+- **GitHub Pages**: Documentation hosting
 - **GitHub Actions**: Continuous integration
 
 ## Open Source
 
-Kexra is licensed under the MIT License, making it free for anyone to use, modify, and distribute.
+Kexra is licensed under the MIT License, making it free for use, modification, and distribution.
 
 ### Contributing
 
-We welcome contributions of all kinds:
+We welcome contributions of all types:
 
-- **Code**: Bug fixes, new features, performance improvements
-- **Documentation**: Tutorials, examples, guides
+- **Code**: Bug fixes, new features
+- **Documentation**: Guides, examples, tutorials
 - **Testing**: Test cases, bug reports
-- **Design**: UI/UX improvements, logo design
-- **Education**: Teaching materials, course content
-
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
+- **Design**: UI/UX improvements
+- **Education**: Teaching materials
 
 ## Acknowledgments
 
 ### Community
 - Early adopters and beta testers
-- GitHub users who reported issues and suggested features
-- Educators using Kexra in their courses
+- GitHub users reporting issues and suggestions
+- Educators using Kexra in courses
 
 ### Tools & Services
-- **GitHub**: Code hosting, issue tracking, project management
+- **GitHub**: Code hosting and collaboration
 - **npm**: Package distribution
-- **TypeScript**: Language and compiler
+- **TypeScript**: Language and tooling
 - **Node.js**: Runtime environment
 
 ### Special Thanks
-- The programming language design community
-- Open-source maintainers who inspire us
-- Everyone who believes in the power of education through code
+- Programming language design community
+- Open-source maintainers and contributors
+- Everyone passionate about computer science education
 
 ## Contact
 
@@ -95,4 +90,4 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines.
 
 ---
 
-**Built with ❤️ using TypeScript**
+Built with ❤️ using TypeScript

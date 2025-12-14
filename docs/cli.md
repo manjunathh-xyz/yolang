@@ -1,16 +1,16 @@
 # CLI
 
-The Command-Line Interface (CLI) provides commands to run Kexra programs, start the REPL, and get help.
+The Command-Line Interface provides commands to run Kexra programs and access tools.
 
 ## Installation
 
-First, install Kexra globally:
+After installing Kexra globally:
 
 ```bash
 npm install -g kexra
 ```
 
-This makes the `kex` command available in your terminal.
+The `kex` command becomes available.
 
 ## Commands
 
@@ -25,7 +25,7 @@ kex run hello.kx
 Example output:
 
 ```
-🚀 Kexra v0.4.1
+🚀 Kexra v0.4.2
 Running: hello.kx
 ──────────────────────────
 Hello, Kexra!
@@ -39,32 +39,34 @@ Start the interactive REPL:
 kex repl
 ```
 
-See the [REPL documentation](repl.md) for details.
+See [REPL documentation](repl.md) for details.
 
 ### kex version
 
-Show the current version:
+Show version information:
 
 ```bash
 kex version
 ```
 
 Output:
+
 ```
-Kexra v0.4.1
+Kexra v0.4.2
 ```
 
 ### kex help
 
-Show help information:
+Display help information:
 
 ```bash
 kex help
 ```
 
 Output:
+
 ```
-Kexra v0.4.1
+Kexra v0.4.2
 
 Usage:
   kex run <file.kx>     Run a Kexra file
@@ -79,58 +81,47 @@ Aliases:
 
 ## Aliases
 
-Short forms are available:
-
 - `kex -v` → `kex version`
 - `kex -h` → `kex help`
 
 ## File Extensions
 
-Kexra files typically use the `.kx` extension, though any extension works:
+Use `.kx` for Kexra files:
 
 - `program.kx`
 - `script.kx`
-- `hello.kx`
 
 ## Exit Codes
 
-The CLI returns different exit codes:
-
 - `0`: Success
-- `1`: Error (syntax error, runtime error, file not found)
+- `1`: Error (syntax, runtime, file not found)
 
 ## Error Handling
 
-If you try to run a non-existent file:
+Missing file:
 
 ```bash
-kex run nonexistent.kx
-```
-
-```
-❌ CliError: Could not read file 'nonexistent.kx'
+kex run missing.kx
+❌ CliError: Could not read file 'missing.kx'
 ```
 
 ## Examples
 
 ### Running Examples
 
-The repository includes example files:
-
 ```bash
-# From the repository root
 kex run examples/hello.kx
 kex run examples/test.kx
 ```
 
-### Creating and Running a Program
+### Creating Programs
 
 1. Create `myprogram.kx`:
 
 ```kx
-say "My first Kexra program!"
+say "My program"
 set x = 42
-say "The answer is: " + x
+say x
 ```
 
 2. Run it:
@@ -141,41 +132,39 @@ kex run myprogram.kx
 
 ## Advanced Usage
 
-### Piping Input
-
-You can pipe code to the REPL:
+### Piping to REPL
 
 ```bash
 echo 'set x = 10
 say x' | kex repl
 ```
 
-### Building from Source
-
-For development:
+### Local Development
 
 ```bash
 git clone https://github.com/manjunathh-xyz/kexra.git
 cd kexra
 npm install
 npm run build
-node dist/cli.js run examples/hello.kx
+node dist/cli.js run yourfile.kx
 ```
 
 ## Troubleshooting
 
 ### Command not found
 
-If `kex` is not recognized:
-
-- Ensure npm global bin directory is in your PATH
-- Try `npx kex` instead
+- Check PATH includes npm global bin
+- Use `npx kex` as alternative
 - Reinstall: `npm install -g kexra`
 
 ### Permission issues
 
-On some systems, you may need to adjust permissions or use sudo for global installation.
+Use `sudo` on Unix systems:
+
+```bash
+sudo npm install -g kexra
+```
 
 ## Next Steps
 
-Now that you know how to use the CLI, explore the [syntax](syntax.md) to start writing programs.
+Learn about [errors](errors.md) to understand and fix issues.

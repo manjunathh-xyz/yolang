@@ -1,6 +1,6 @@
 # REPL
 
-The Read-Eval-Print Loop (REPL) is an interactive environment for running Kexra code and experimenting with the language.
+The Read-Eval-Print Loop (REPL) provides an interactive environment for running Kexra code.
 
 ## Starting the REPL
 
@@ -13,41 +13,36 @@ kex repl
 You'll see:
 
 ```
-🎧 Kexra REPL v0.4.1
+🎧 Kexra REPL v0.4.2
 Type 'help' for commands, 'exit' to quit
 kex>
 ```
 
 ## Basic Usage
 
-Type statements at the prompt and press Enter to execute them:
+Type statements and press Enter to execute:
 
 ```bash
 kex> set x = 42
 kex> say x
 42
-kex> set y = x * 2
-kex> say y
-84
 ```
 
 ## Multiline Input
 
-For statements that span multiple lines (functions, conditionals, loops), the REPL automatically handles continuation:
+For blocks, the REPL handles continuation automatically:
 
 ```bash
-kex> fn add(a, b) {
-...   return a + b
+kex> fn square(x) {
+...   return x * x
 ... }
-kex> say add(2, 3)
-5
+kex> say square(5)
+25
 ```
 
 The `...` prompt indicates continuation lines.
 
 ## Built-in Commands
-
-The REPL has several built-in commands:
 
 ### help
 
@@ -64,20 +59,18 @@ Available commands:
 
 ### vars
 
-Display all current variables and their values:
+Display all current variables:
 
 ```bash
 kex> set name = "Kexra"
-kex> set version = 0.4
 kex> vars
 Current variables:
   name: "Kexra"
-  version: 0.4
 ```
 
 ### clear
 
-Clear the terminal screen:
+Clear the screen:
 
 ```bash
 kex> clear
@@ -94,56 +87,51 @@ Goodbye!
 
 ## Variable Persistence
 
-Variables defined in the REPL persist across commands:
+Variables persist across commands:
 
 ```bash
 kex> set counter = 0
 kex> set counter = counter + 1
 kex> say counter
 1
-kex> set counter = counter + 1
-kex> say counter
-2
 ```
 
 ## Error Handling
 
-The REPL shows errors clearly and continues running:
+Errors don't crash the REPL:
 
 ```bash
-kex> say undefinedVariable
-❌ RuntimeError
-Undefined variable 'undefinedVariable'
-Make sure the variable is defined before use
-kex> say "Still working!"
-Still working!
+kex> say undefined
+❌ RuntimeError: Undefined variable 'undefined'
+kex> say "Still working"
+Still working
 ```
 
 ## Function Definitions
 
-You can define and use functions interactively:
+Define and use functions interactively:
 
 ```bash
-kex> fn square(x) {
-...   return x * x
+kex> fn add(a, b) {
+...   return a + b
 ... }
-kex> say square(5)
-25
+kex> say add(2, 3)
+5
 ```
+
+## Use Cases
+
+- Test small code snippets
+- Learn language features
+- Debug programs
+- Experiment with ideas
 
 ## Limitations
 
-- Functions must be defined before use (same as in files)
-- Multi-line input is handled automatically
-- No command history (use up/down arrows if supported by your terminal)
-
-## Best Practices
-
-- Use the REPL to test small code snippets
-- Define helper functions for complex calculations
-- Use `vars` to inspect your current state
-- Experiment with different approaches before writing full programs
+- Functions must be defined before use
+- No command history (use terminal features)
+- Single-threaded execution
 
 ## Next Steps
 
-Learn about the [CLI](cli.md) for running Kexra files and other command-line options.
+Learn about the [CLI](cli.md) for running files and other commands.

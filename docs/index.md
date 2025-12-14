@@ -1,45 +1,47 @@
 # Kexra Documentation
 
-Welcome to the official documentation for Kexra, a simple and beginner-friendly scripting language built with TypeScript.
+Welcome to the official documentation for Kexra, a simple and powerful scripting language designed for learning and rapid development.
 
 ## What is Kexra?
 
-Kexra is an interpreted scripting language designed for learning programming concepts. It features a clean, English-like syntax that's easy to read and write, making it perfect for beginners exploring language design and implementation.
+Kexra is an interpreted scripting language that emphasizes clarity, simplicity, and educational value. Built with TypeScript and running on Node.js, it provides a clean syntax that's easy to learn while teaching fundamental programming concepts.
 
 ## Philosophy
 
-Kexra emphasizes simplicity and clarity. The language is built with the following principles:
+Kexra follows these core principles:
 
-- **Beginner-friendly**: Syntax that reads like natural language
-- **Educational**: Designed to teach fundamental programming concepts
-- **Minimal**: Focus on core features without unnecessary complexity
-- **Extensible**: Open-source foundation for learning and experimentation
+- **Clarity First**: Syntax that reads like natural language
+- **Educational**: Designed to teach programming concepts effectively
+- **Minimal**: Focus on essential features without unnecessary complexity
+- **Accessible**: Easy to install, run, and contribute to
 
-## Who is Kexra for?
+## Who is Kexra For?
 
 - **Beginners** learning programming for the first time
-- **Students** studying language design and compiler construction
-- **Developers** interested in building their own programming languages
-- **Educators** looking for simple examples to teach programming concepts
+- **Students** studying language design and implementation
+- **Developers** exploring interpreted languages
+- **Educators** looking for simple examples to teach concepts
 
-## Getting Started
+## What Kexra is NOT
 
-If you're new to Kexra, start with the [Getting Started](getting-started.md) guide to install the language and run your first program.
+Kexra is not a production-ready language for large-scale applications. It's designed for:
 
-## Language Reference
+- Learning and experimentation
+- Small scripts and automation
+- Understanding language internals
+- Prototyping ideas
 
-- [Syntax](syntax.md) - Basic grammar and structure
-- [Variables](variables.md) - Working with data
-- [Functions](functions.md) - Defining and calling functions
-- [Control Flow](control-flow.md) - Conditionals and loops
-- [REPL](repl.md) - Interactive development
-- [CLI](cli.md) - Command-line interface
-- [Errors](errors.md) - Understanding error messages
+## Learning Path
 
-## Development
-
-- [Roadmap](roadmap.md) - Future plans and vision
-- [Credits](credits.md) - Contributors and acknowledgments
+1. **[Getting Started](getting-started.md)** - Your first Kexra program
+2. **[Installation](installation.md)** - How to install Kexra
+3. **[Language Basics](language-basics.md)** - Core concepts
+4. **[Variables](variables.md)** - Working with data
+5. **[Functions](functions.md)** - Reusable code blocks
+6. **[Control Flow](control-flow.md)** - Making decisions and loops
+7. **[REPL](repl.md)** - Interactive development
+8. **[CLI](cli.md)** - Command-line interface
+9. **[Errors](errors.md)** - Understanding and fixing errors
 
 ## Examples
 
@@ -53,12 +55,18 @@ fn greet(name) {
 say greet("World")
 ```
 
-This defines a function that creates a greeting and prints "Hello, World!".
+This defines a function and calls it, outputting "Hello, World!".
+
+## Project Status
+
+Kexra is in active development. See the [roadmap](roadmap.md) for upcoming features.
 
 ## Community
-
-Kexra is an open-source project. Contributions, feedback, and discussions are welcome!
 
 - [GitHub Repository](https://github.com/manjunathh-xyz/kexra)
 - [Issues](https://github.com/manjunathh-xyz/kexra/issues)
 - [Discussions](https://github.com/manjunathh-xyz/kexra/discussions)
+
+---
+
+Built with ❤️ using TypeScript

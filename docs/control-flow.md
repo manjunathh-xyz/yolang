@@ -1,10 +1,10 @@
 # Control Flow
 
-Control flow statements allow your program to make decisions and repeat actions based on conditions.
+Control flow statements allow programs to make decisions and repeat actions.
 
 ## Conditional Statements
 
-Use `check` to execute code only when a condition is true:
+Use `check` to execute code based on conditions:
 
 ```kx
 set age = 18
@@ -14,29 +14,77 @@ check age >= 18 {
 }
 ```
 
-### If-Else
+## If-Else
 
-Add `else` to handle the alternative case:
+Add `else` for alternative execution:
 
 ```kx
 check age >= 18 {
-  say "You are an adult"
+  say "Adult"
 } else {
-  say "You are a minor"
+  say "Minor"
 }
 ```
 
-Conditions can use comparison operators:
+## Nested Conditions
+
+Use multiple conditions for complex logic:
 
 ```kx
 set score = 85
 
 check score >= 90 {
-  say "Excellent!"
+  say "Excellent"
 } else check score >= 80 {
-  say "Good job!"
+  say "Good"
 } else {
-  say "Keep trying!"
+  say "Needs improvement"
+}
+```
+
+## Boolean Logic
+
+Kexra considers any non-null value as true:
+
+```kx
+check 1 {        # true
+  say "Runs"
+}
+
+check 0 {        # true (0 is a number)
+  say "Also runs"
+}
+
+check "" {       # true (empty string)
+  say "Runs too"
+}
+
+check null {     # false
+  say "Doesn't run"
+}
+```
+
+## Comparison Operators
+
+Use these for conditions:
+
+- `==` equal to
+- `!=` not equal to
+- `>` greater than
+- `<` less than
+- `>=` greater than or equal
+- `<=` less than or equal
+
+```kx
+set x = 10
+set y = 20
+
+check x < y {
+  say "x is smaller"
+}
+
+check x != y {
+  say "x and y differ"
 }
 ```
 
@@ -61,74 +109,9 @@ This outputs:
 4
 ```
 
-## Boolean Expressions
-
-Conditions must evaluate to true or false. Kexra considers any non-null value as true:
-
-```kx
-check 1 {        # true
-  say "This runs"
-}
-
-check 0 {        # true (0 is a number)
-  say "This also runs"
-}
-
-check "" {       # true (empty string is still a string)
-  say "This runs too"
-}
-
-check null {     # false
-  say "This doesn't run"
-}
-```
-
-## Comparison Operators
-
-Use these operators in conditions:
-
-- `==` - equal to
-- `!=` - not equal to
-- `>` - greater than
-- `<` - less than
-- `>=` - greater than or equal
-- `<=` - less than or equal
-
-```kx
-set x = 10
-set y = 20
-
-check x < y {
-  say "x is less than y"
-}
-
-check x != y {
-  say "x is not equal to y"
-}
-```
-
-## Logical Operators
-
-Kexra doesn't have explicit logical operators yet, but you can use nested conditions:
-
-```kx
-set age = 25
-set hasLicense = true
-
-check age >= 18 {
-  check hasLicense {
-    say "You can drive"
-  } else {
-    say "You need a license"
-  }
-} else {
-  say "You're too young to drive"
-}
-```
-
 ## Loop Control
 
-Loops continue until the condition becomes false. Make sure to modify the condition variable:
+Modify the condition variable to exit:
 
 ```kx
 set count = 10
@@ -136,27 +119,52 @@ loop count > 0 {
   say count
   set count = count - 1
 }
-say "Blast off!"
+say "Done!"
 ```
 
 ## Infinite Loops
 
-Be careful not to create loops that never end:
+Avoid loops that never end:
 
 ```kx
-# This would loop forever - don't do this!
+# Don't do this:
 # loop true {
-#   say "This never stops"
+#   say "Never stops"
 # }
+```
+
+## Common Patterns
+
+### Counting Loop
+
+```kx
+set i = 1
+loop i <= 10 {
+  say "Count: " + i
+  set i = i + 1
+}
+```
+
+### Sum Calculation
+
+```kx
+set sum = 0
+set i = 1
+loop i <= 100 {
+  set sum = sum + i
+  set i = i + 1
+}
+say "Sum: " + sum
 ```
 
 ## Best Practices
 
-- Use clear, descriptive conditions
-- Avoid deeply nested conditionals when possible
-- Ensure loop conditions will eventually become false
-- Use functions to organize complex conditional logic
+- Use clear, readable conditions
+- Avoid deeply nested conditionals
+- Ensure loops have exit conditions
+- Use functions for complex logic
+- Test edge cases
 
 ## Next Steps
 
-Explore the [REPL](repl.md) for interactive experimentation with control flow.
+Explore the [REPL](repl.md) for interactive experimentation.

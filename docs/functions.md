@@ -4,7 +4,7 @@ Functions allow you to organize code into reusable blocks that can be called wit
 
 ## Defining Functions
 
-Use the `fn` keyword followed by the function name, parameters in parentheses, and a block of code:
+Use `fn` followed by a name, parameters in parentheses, and a block:
 
 ```kx
 fn greet(name) {
@@ -14,7 +14,7 @@ fn greet(name) {
 
 ## Calling Functions
 
-Call a function by writing its name followed by arguments in parentheses:
+Call a function by name with arguments:
 
 ```kx
 greet("World")  # Outputs: Hello, World!
@@ -22,7 +22,7 @@ greet("World")  # Outputs: Hello, World!
 
 ## Parameters
 
-Functions can accept parameters, which become local variables inside the function:
+Parameters receive values when the function is called:
 
 ```kx
 fn add(a, b) {
@@ -33,11 +33,11 @@ set result = add(2, 3)
 say result  # Outputs: 5
 ```
 
-Parameters are passed by value, meaning the function receives copies of the values.
+Parameters are passed by value and become local variables.
 
 ## Return Values
 
-Use `return` to exit a function and return a value:
+Use `return` to exit and return a value:
 
 ```kx
 fn multiply(x, y) {
@@ -47,21 +47,20 @@ fn multiply(x, y) {
 say multiply(4, 5)  # Outputs: 20
 ```
 
-If no `return` statement is executed, the function returns `null`:
+Without `return`, functions return `null`:
 
 ```kx
-fn printMessage(msg) {
+fn print_message(msg) {
   say msg
-  # No return statement
 }
 
-set result = printMessage("Hello")
+set result = print_message("Hello")
 say result  # Outputs: null
 ```
 
 ## Function Scope
 
-Variables defined inside functions are local to that function:
+Variables inside functions are local:
 
 ```kx
 fn test() {
@@ -70,10 +69,10 @@ fn test() {
 }
 
 say test()  # Outputs: inside
-say local   # Error: undefined variable
+say local   # Error: undefined
 ```
 
-Functions can access global variables:
+Functions access global variables:
 
 ```kx
 set global = "world"
@@ -87,7 +86,7 @@ say greet()  # Outputs: Hello, world
 
 ## Recursion
 
-Functions can call themselves (recursion):
+Functions can call themselves:
 
 ```kx
 fn factorial(n) {
@@ -101,17 +100,17 @@ fn factorial(n) {
 say factorial(5)  # Outputs: 120
 ```
 
-## Function Declaration Order
+## Declaration Order
 
-Functions must be defined before they are called:
+Functions must be defined before use:
 
 ```kx
 fn helper() {
-  say "Helper function"
+  say "Helper"
 }
 
 fn main() {
-  helper()  # This works
+  helper()  # Works
 }
 
 main()
@@ -119,11 +118,12 @@ main()
 
 ## Best Practices
 
-- Use descriptive function names
-- Keep functions focused on a single task
-- Use parameters to make functions flexible
-- Return meaningful values when appropriate
+- Use descriptive names
+- Keep functions focused on one task
+- Use parameters for flexibility
+- Return meaningful values
+- Document complex functions with comments
 
 ## Next Steps
 
-Learn about [control flow](control-flow.md) to add decision-making to your programs.
+Learn about [control flow](control-flow.md) to add decision-making to programs.
