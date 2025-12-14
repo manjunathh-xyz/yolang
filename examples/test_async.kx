@@ -1,0 +1,10 @@
+# Test async
+fn asyncFunc() {
+  return await 42
+}
+say "async: " + asyncFunc()
+
+# Test use
+# Assume math module is loaded
+# use math { add }
+# say "add: " + add(1, 2)

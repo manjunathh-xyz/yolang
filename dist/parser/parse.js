@@ -52,6 +52,8 @@ class Parser {
                     return this.parseImport();
                 case 'export':
                     return this.parseExport();
+                case 'use':
+                    return this.parseUse();
                 default:
                     throw this.error(token, `Unexpected keyword '${token.value}'`);
             }
@@ -215,24 +217,29 @@ class Parser {
     }
     parseExport() {
         this.advance(); // 'export'
-        if (this.match('KEYWORD', 'const')) {
-            const name = this.consume('IDENT', 'Expected variable name').value;
-            this.consume('OPERATOR', 'Expected =', '=');
-            const expression = this.parseExpression();
-            this.expectNewline();
-            return { type: 'export', name, expression };
+        const name = this.expectIdentifier('Expected identifier after export').value;
+        let expression;
+        if (this.peek().type !== 'NEWLINE') {
+            expression = this.parseExpression();
         }
-        else if (this.match('KEYWORD', 'fn')) {
-            const name = this.consume('IDENT', 'Expected function name').value;
-            // Parse function as usual
-            const func = this.parseFunction();
-            return { type: 'export', name, expression: { type: 'call', name: 'fn', args: [] } }; // Placeholder
+        this.expectNewline();
+        return { type: 'export', name, expression };
+    }
+    parseUse() {
+        this.advance(); // 'use'
+        const module = this.expectIdentifier('Expected module name after use').value;
+        this.expect('BLOCK_START', 'Expected { after module name');
+        const imports = [];
+        while (!this.check('BLOCK_END')) {
+            const ident = this.expectIdentifier('Expected identifier in import list');
+            imports.push(ident.value);
+            if (!this.check('BLOCK_END')) {
+                this.expect('OPERATOR', ',', 'Expected , or }');
+            }
         }
-        else {
-            const name = this.consume('IDENT', 'Expected identifier').value;
-            this.expectNewline();
-            return { type: 'export', name };
-        }
+        this.advance(); // consume }
+        this.expectNewline();
+        return { type: 'use', module, imports };
     }
     parseBlock() {
         const statements = [];
@@ -327,15 +334,27 @@ class Parser {
             const right = this.parseUnary();
             return { type: 'logical', operator, right };
         }
+        if (this.match('KEYWORD', 'await')) {
+            const expression = this.parseUnary();
+            return { type: 'await', expression };
+        }
         return this.parsePrimary();
     }
     // TODO: v0.5.0 - Add parsing for arrays [], objects {}, and indexing []
     parsePrimary() {
         if (this.match('NUMBER')) {
-            return { type: 'literal', valueType: 'number', value: parseFloat(this.previous().value) };
+            return {
+                type: 'literal',
+                valueType: 'number',
+                value: parseFloat(this.previous().value),
+            };
         }
         if (this.match('STRING')) {
-            return { type: 'literal', valueType: 'string', value: this.previous().value };
+            return {
+                type: 'literal',
+                valueType: 'string',
+                value: this.previous().value,
+            };
         }
         if (this.match('KEYWORD', 'true')) {
             return { type: 'literal', valueType: 'boolean', value: true };
@@ -443,6 +462,27 @@ class Parser {
     }
     consume(type, message, ...values) {
         if (this.check(type, ...values))
+            return this.advance();
+        throw this.error(this.peek(), message);
+    }
+    expect(type, valueOrMessage, message) {
+        if (this.check(type)) {
+            const token = this.peek();
+            if (message === undefined) {
+                // valueOrMessage is message
+                return this.advance();
+            }
+            else {
+                // valueOrMessage is value
+                if (token.value === valueOrMessage)
+                    return this.advance();
+                throw this.error(token, message);
+            }
+        }
+        throw this.error(this.peek(), message || valueOrMessage);
+    }
+    expectIdentifier(message) {
+        if (this.peek().type === 'IDENT')
             return this.advance();
         throw this.error(this.peek(), message);
     }

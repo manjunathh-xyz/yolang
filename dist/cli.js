@@ -3,13 +3,22 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const runtime_1 = require("./runtime/runtime");
 const repl_1 = require("./repl/repl");
+const package_1 = require("./package");
 const VERSION = require('../package.json').version;
+const pkgManager = new package_1.PackageManager();
 function showHelp() {
     console.log(`Kexra v${VERSION}`);
     console.log('');
     console.log('Usage:');
     console.log('  kex run <file.kx>     Run a Kexra file');
     console.log('  kex repl              Start interactive REPL');
+    console.log('  kex init              Initialize a new Kexra project');
+    console.log('  kex install [pkg]     Install packages');
+    console.log('  kex update [pkg]      Update packages');
+    console.log('  kex remove <pkg>      Remove a package');
+    console.log('  kex list              List installed packages');
+    console.log('  kex fmt               Format Kexra files');
+    console.log('  kex test              Run tests');
     console.log('  kex version           Show version');
     console.log('  kex help              Show help');
     console.log('');
@@ -30,6 +39,43 @@ function main() {
     }
     if (args[0] === 'repl') {
         (0, repl_1.startRepl)();
+        return;
+    }
+    if (args[0] === 'init') {
+        pkgManager.init();
+        return;
+    }
+    if (args[0] === 'install') {
+        const pkg = args[1];
+        pkgManager.install(pkg);
+        return;
+    }
+    if (args[0] === 'update') {
+        const pkg = args[1];
+        pkgManager.update(pkg);
+        return;
+    }
+    if (args[0] === 'remove') {
+        const pkg = args[1];
+        if (!pkg) {
+            console.error('Package name required');
+            process.exit(1);
+        }
+        pkgManager.remove(pkg);
+        return;
+    }
+    if (args[0] === 'list') {
+        pkgManager.list();
+        return;
+    }
+    if (args[0] === 'fmt') {
+        // TODO: implement fmt
+        console.log('Formatting files...');
+        return;
+    }
+    if (args[0] === 'test') {
+        // TODO: implement test
+        console.log('Running tests...');
         return;
     }
     if (args[0] === 'run' && args.length >= 2) {
@@ -56,7 +102,7 @@ function main() {
         if (!result.success) {
             if (debug) {
                 console.error('Stack trace:');
-                (_a = result.stackTrace) === null || _a === void 0 ? void 0 : _a.forEach(frame => {
+                (_a = result.stackTrace) === null || _a === void 0 ? void 0 : _a.forEach((frame) => {
                     console.error(`  at ${frame.functionName} (${frame.line}:${frame.column})`);
                 });
             }

@@ -1,4 +1,39 @@
-import { Token, TokenType, Program, Statement, SayStatement, SetStatement, ConstStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, TryStatement, SwitchStatement, ImportStatement, ExportStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression, TernaryExpression, NilCoalescingExpression, OptionalChainExpression } from '../types';
+import {
+  Token,
+  TokenType,
+  Program,
+  Statement,
+  SayStatement,
+  SetStatement,
+  ConstStatement,
+  CheckStatement,
+  LoopStatement,
+  ForStatement,
+  UseStatement,
+  FunctionDeclaration,
+  ReturnStatement,
+  BreakStatement,
+  ContinueStatement,
+  TryStatement,
+  SwitchStatement,
+  ImportStatement,
+  ExportStatement,
+  Expression,
+  LiteralExpression,
+  VariableExpression,
+  BinaryExpression,
+  LogicalExpression,
+  CallExpression,
+  ArrayExpression,
+  ObjectExpression,
+  IndexExpression,
+  NilSafeExpression,
+  RangeExpression,
+  TernaryExpression,
+  NilCoalescingExpression,
+  OptionalChainExpression,
+  AwaitExpression,
+} from '../types';
 import { SyntaxError } from '../errors/SyntaxError';
 
 export class Parser {
@@ -55,6 +90,8 @@ export class Parser {
           return this.parseImport();
         case 'export':
           return this.parseExport();
+        case 'use':
+          return this.parseUse();
         default:
           throw this.error(token, `Unexpected keyword '${token.value}'`);
       }
@@ -69,17 +106,23 @@ export class Parser {
     return { type: 'say', expression: expr };
   }
 
-   private parseSet(): SetStatement {
-     this.advance(); // 'set'
-     const name = this.consume('IDENT', 'Expected variable name').value;
-     const opToken = this.consume('OPERATOR', 'Expected =');
-     if (opToken.value !== '=') {
-       throw new SyntaxError('Expected =', this.filePath, opToken.line, opToken.column, 'Use "=" for assignment, not "=="');
-     }
-     const expr = this.parseExpression();
-     this.expectNewline();
-     return { type: 'set', name, expression: expr };
-   }
+  private parseSet(): SetStatement {
+    this.advance(); // 'set'
+    const name = this.consume('IDENT', 'Expected variable name').value;
+    const opToken = this.consume('OPERATOR', 'Expected =');
+    if (opToken.value !== '=') {
+      throw new SyntaxError(
+        'Expected =',
+        this.filePath,
+        opToken.line,
+        opToken.column,
+        'Use "=" for assignment, not "=="'
+      );
+    }
+    const expr = this.parseExpression();
+    this.expectNewline();
+    return { type: 'set', name, expression: expr };
+  }
 
   private parseCheck(): CheckStatement {
     this.advance(); // 'check'
@@ -230,22 +273,30 @@ export class Parser {
 
   private parseExport(): ExportStatement {
     this.advance(); // 'export'
-    if (this.match('KEYWORD', 'const')) {
-      const name = this.consume('IDENT', 'Expected variable name').value;
-      this.consume('OPERATOR', 'Expected =', '=');
-      const expression = this.parseExpression();
-      this.expectNewline();
-      return { type: 'export', name, expression };
-    } else if (this.match('KEYWORD', 'fn')) {
-      const name = this.consume('IDENT', 'Expected function name').value;
-      // Parse function as usual
-      const func = this.parseFunction();
-      return { type: 'export', name, expression: { type: 'call', name: 'fn', args: [] } as any }; // Placeholder
-    } else {
-      const name = this.consume('IDENT', 'Expected identifier').value;
-      this.expectNewline();
-      return { type: 'export', name };
+    const name = this.expectIdentifier('Expected identifier after export').value;
+    let expression: Expression | undefined;
+    if (this.peek().type !== 'NEWLINE') {
+      expression = this.parseExpression();
     }
+    this.expectNewline();
+    return { type: 'export', name, expression };
+  }
+
+  private parseUse(): UseStatement {
+    this.advance(); // 'use'
+    const module = this.expectIdentifier('Expected module name after use').value;
+    this.expect('BLOCK_START', 'Expected { after module name');
+    const imports: string[] = [];
+    while (!this.check('BLOCK_END')) {
+      const ident = this.expectIdentifier('Expected identifier in import list');
+      imports.push(ident.value);
+      if (!this.check('BLOCK_END')) {
+        this.expect('OPERATOR', ',', 'Expected , or }');
+      }
+    }
+    this.advance(); // consume }
+    this.expectNewline();
+    return { type: 'use', module, imports };
   }
 
   private parseBlock(): Statement[] {
@@ -351,16 +402,28 @@ export class Parser {
       const right = this.parseUnary();
       return { type: 'logical', operator, right } as LogicalExpression;
     }
+    if (this.match('KEYWORD', 'await')) {
+      const expression = this.parseUnary();
+      return { type: 'await', expression } as AwaitExpression;
+    }
     return this.parsePrimary();
   }
 
   // TODO: v0.5.0 - Add parsing for arrays [], objects {}, and indexing []
   private parsePrimary(): Expression {
     if (this.match('NUMBER')) {
-      return { type: 'literal', valueType: 'number', value: parseFloat(this.previous().value) } as LiteralExpression;
+      return {
+        type: 'literal',
+        valueType: 'number',
+        value: parseFloat(this.previous().value),
+      } as LiteralExpression;
     }
     if (this.match('STRING')) {
-      return { type: 'literal', valueType: 'string', value: this.previous().value } as LiteralExpression;
+      return {
+        type: 'literal',
+        valueType: 'string',
+        value: this.previous().value,
+      } as LiteralExpression;
     }
     if (this.match('KEYWORD', 'true')) {
       return { type: 'literal', valueType: 'boolean', value: true } as LiteralExpression;
@@ -478,6 +541,28 @@ export class Parser {
 
   private consume(type: TokenType, message: string, ...values: string[]): Token {
     if (this.check(type, ...values)) return this.advance();
+    throw this.error(this.peek(), message);
+  }
+
+  private expect(type: TokenType, message: string): Token;
+  private expect(type: TokenType, value: string, message: string): Token;
+  private expect(type: TokenType, valueOrMessage: string, message?: string): Token {
+    if (this.check(type)) {
+      const token = this.peek();
+      if (message === undefined) {
+        // valueOrMessage is message
+        return this.advance();
+      } else {
+        // valueOrMessage is value
+        if (token.value === valueOrMessage) return this.advance();
+        throw this.error(token, message);
+      }
+    }
+    throw this.error(this.peek(), message || valueOrMessage);
+  }
+
+  private expectIdentifier(message: string): Token {
+    if (this.peek().type === 'IDENT') return this.advance();
     throw this.error(this.peek(), message);
   }
 

@@ -15,6 +15,7 @@ import {
   SwitchStatement,
   ImportStatement,
   ExportStatement,
+  UseStatement,
   Expression,
   LiteralExpression,
   VariableExpression,
@@ -29,6 +30,7 @@ import {
   TernaryExpression,
   NilCoalescingExpression,
   OptionalChainExpression,
+  AwaitExpression,
 } from '../types';
 import { RuntimeError } from '../errors/RuntimeError';
 import { Value, ValueType, RuntimeFn } from './values';
@@ -200,6 +202,10 @@ export class Interpreter {
         const exportStmt = stmt as ExportStatement;
         this.executeExport(exportStmt);
         break;
+      case 'use':
+        const useStmt = stmt as UseStatement;
+        this.executeUse(useStmt);
+        break;
     }
   }
 
@@ -259,6 +265,8 @@ export class Interpreter {
         return this.evaluateNilCoalescing(expr as NilCoalescingExpression);
       case 'optional-chain':
         return this.evaluateOptionalChain(expr as OptionalChainExpression);
+      case 'await':
+        return this.evaluateAwait(expr as AwaitExpression);
     }
   }
 
@@ -550,6 +558,12 @@ export class Interpreter {
     throw new RuntimeError('Optional chaining only on objects');
   }
 
+  private evaluateAwait(expr: AwaitExpression): Value {
+    // For now, just evaluate the expression
+    // TODO: implement async runtime
+    return this.evaluate(expr.expression);
+  }
+
   private executeTry(stmt: TryStatement): void {
     try {
       for (const s of stmt.tryBody) {
@@ -631,6 +645,23 @@ export class Interpreter {
         currentModule.set(stmt.name, this.currentEnv().get(stmt.name)!);
       } else {
         throw new RuntimeError(`Cannot export undefined variable '${stmt.name}'`);
+      }
+    }
+  }
+
+  private executeUse(stmt: UseStatement): void {
+    // Load module if not cached
+    if (!this.modules.has(stmt.module)) {
+      // For now, assume module is a file
+      // TODO: implement module loading
+      throw new RuntimeError(`Module '${stmt.module}' not found`);
+    }
+    const moduleExports = this.modules.get(stmt.module)!;
+    for (const name of stmt.imports) {
+      if (moduleExports.has(name)) {
+        this.currentEnv().set(name, moduleExports.get(name)!);
+      } else {
+        throw new RuntimeError(`Export '${name}' not found in module '${stmt.module}'`);
       }
     }
   }

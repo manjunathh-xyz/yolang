@@ -150,6 +150,10 @@ class Interpreter {
                 const exportStmt = stmt;
                 this.executeExport(exportStmt);
                 break;
+            case 'use':
+                const useStmt = stmt;
+                this.executeUse(useStmt);
+                break;
         }
     }
     evaluate(expr) {
@@ -201,6 +205,8 @@ class Interpreter {
                 return this.evaluateNilCoalescing(expr);
             case 'optional-chain':
                 return this.evaluateOptionalChain(expr);
+            case 'await':
+                return this.evaluateAwait(expr);
         }
     }
     evaluateIndex(expr) {
@@ -470,6 +476,11 @@ class Interpreter {
         }
         throw new RuntimeError_1.RuntimeError('Optional chaining only on objects');
     }
+    evaluateAwait(expr) {
+        // For now, just evaluate the expression
+        // TODO: implement async runtime
+        return this.evaluate(expr.expression);
+    }
     executeTry(stmt) {
         try {
             for (const s of stmt.tryBody) {
@@ -552,6 +563,23 @@ class Interpreter {
             }
             else {
                 throw new RuntimeError_1.RuntimeError(`Cannot export undefined variable '${stmt.name}'`);
+            }
+        }
+    }
+    executeUse(stmt) {
+        // Load module if not cached
+        if (!this.modules.has(stmt.module)) {
+            // For now, assume module is a file
+            // TODO: implement module loading
+            throw new RuntimeError_1.RuntimeError(`Module '${stmt.module}' not found`);
+        }
+        const moduleExports = this.modules.get(stmt.module);
+        for (const name of stmt.imports) {
+            if (moduleExports.has(name)) {
+                this.currentEnv().set(name, moduleExports.get(name));
+            }
+            else {
+                throw new RuntimeError_1.RuntimeError(`Export '${name}' not found in module '${stmt.module}'`);
             }
         }
     }

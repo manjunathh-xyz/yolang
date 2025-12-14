@@ -1,4 +1,33 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.keywords = void 0;
-exports.keywords = ['say', 'set', 'check', 'else', 'loop', 'fn', 'return', 'true', 'false', 'and', 'or', 'not', 'for', 'in', 'break', 'continue', 'const', 'try', 'catch', 'finally', 'switch', 'case', 'default', 'import', 'export', 'from'];
+exports.keywords = [
+    'say',
+    'set',
+    'check',
+    'else',
+    'loop',
+    'fn',
+    'return',
+    'true',
+    'false',
+    'and',
+    'or',
+    'not',
+    'for',
+    'in',
+    'break',
+    'continue',
+    'const',
+    'try',
+    'catch',
+    'finally',
+    'switch',
+    'case',
+    'default',
+    'import',
+    'export',
+    'from',
+    'use',
+    'await',
+];

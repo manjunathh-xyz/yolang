@@ -1,13 +1,13 @@
 export type TokenType =
-  | "NUMBER"
-  | "STRING"
-  | "IDENT"
-  | "KEYWORD"
-  | "OPERATOR"
-  | "BLOCK_START"
-  | "BLOCK_END"
-  | "NEWLINE"
-  | "EOF";
+  | 'NUMBER'
+  | 'STRING'
+  | 'IDENT'
+  | 'KEYWORD'
+  | 'OPERATOR'
+  | 'BLOCK_START'
+  | 'BLOCK_END'
+  | 'NEWLINE'
+  | 'EOF';
 
 export interface Token {
   type: TokenType;
@@ -17,7 +17,21 @@ export interface Token {
 }
 
 export interface Expression {
-  type: 'literal' | 'variable' | 'binary' | 'logical' | 'call' | 'array' | 'object' | 'index' | 'nil-safe' | 'range' | 'ternary' | 'nil-coalescing' | 'optional-chain';
+  type:
+    | 'literal'
+    | 'variable'
+    | 'binary'
+    | 'logical'
+    | 'call'
+    | 'array'
+    | 'object'
+    | 'index'
+    | 'nil-safe'
+    | 'range'
+    | 'ternary'
+    | 'nil-coalescing'
+    | 'optional-chain'
+    | 'await';
 }
 
 export interface LiteralExpression extends Expression {
@@ -108,8 +122,28 @@ export interface OptionalChainExpression extends Expression {
   property: string;
 }
 
+export interface AwaitExpression extends Expression {
+  type: 'await';
+  expression: Expression;
+}
+
 export interface Statement {
-  type: 'say' | 'set' | 'const' | 'check' | 'loop' | 'for' | 'function' | 'return' | 'break' | 'continue' | 'try' | 'switch' | 'import' | 'export';
+  type:
+    | 'say'
+    | 'set'
+    | 'const'
+    | 'check'
+    | 'loop'
+    | 'for'
+    | 'function'
+    | 'return'
+    | 'break'
+    | 'continue'
+    | 'try'
+    | 'switch'
+    | 'import'
+    | 'export'
+    | 'use';
 }
 
 export interface SayStatement extends Statement {
@@ -195,6 +229,12 @@ export interface ExportStatement extends Statement {
   type: 'export';
   name: string;
   expression?: Expression;
+}
+
+export interface UseStatement extends Statement {
+  type: 'use';
+  module: string;
+  imports: string[];
 }
 
 export type Program = Statement[];
