@@ -1,15 +1,16 @@
 // Command palette component
 export class CommandPalette {
   private element: HTMLElement;
+  private backdrop: HTMLElement;
   private input: HTMLInputElement;
   private list: HTMLElement;
   private commands: { name: string; action: () => void }[] = [];
   private isVisible = false;
 
   constructor() {
+    this.backdrop = document.getElementById('command-backdrop')!;
     this.element = document.createElement('div');
     this.element.className = 'command-palette';
-    this.element.style.display = 'none';
 
     this.input = document.createElement('input');
     this.input.type = 'text';
@@ -23,6 +24,7 @@ export class CommandPalette {
     this.element.appendChild(this.list);
     document.body.appendChild(this.element);
 
+    this.backdrop.addEventListener('click', () => this.hide());
     this.input.addEventListener('input', () => this.filterCommands());
     this.input.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -49,6 +51,7 @@ export class CommandPalette {
 
   show(): void {
     this.isVisible = true;
+    this.backdrop.style.display = 'block';
     this.element.style.display = 'block';
     this.input.focus();
     this.input.value = '';
@@ -57,6 +60,7 @@ export class CommandPalette {
 
   hide(): void {
     this.isVisible = false;
+    this.backdrop.style.display = 'none';
     this.element.style.display = 'none';
   }
 
