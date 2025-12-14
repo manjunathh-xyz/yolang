@@ -8,7 +8,7 @@ import { CliError } from './errors/CliError';
 import { KexraError } from './errors/KexraError';
 import { PackageManager } from './package';
 
-const VERSION = '1.1.1';
+const VERSION = '1.1.2';
 const pkgManager = new PackageManager();
 
 function showHelp() {

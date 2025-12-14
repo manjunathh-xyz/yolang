@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const runtime_1 = require("./runtime/runtime");
 const repl_1 = require("./repl/repl");
 const package_1 = require("./package");
-const VERSION = '1.1.1';
+const VERSION = '1.1.2';
 const pkgManager = new package_1.PackageManager();
 function showHelp() {
     console.log(`Kexra v${VERSION}`);

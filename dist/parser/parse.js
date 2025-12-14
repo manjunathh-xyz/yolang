@@ -266,9 +266,7 @@ class Parser {
     }
     parseFactor() {
         let expression = this.parseUnary();
-        while (this.match('OPERATOR', '*') ||
-            this.match('OPERATOR', '/') ||
-            this.match('OPERATOR', '%')) {
+        while (this.match('OPERATOR', '*') || this.match('OPERATOR', '/')) {
             const operator = this.previous().value;
             const right = this.parseUnary();
             expression = { type: 'binary', operator, left: expression, right };
@@ -336,11 +334,13 @@ class Parser {
     }
     parseArray() {
         const elements = [];
-        while (!this.check('ARRAY_END')) {
-            elements.push(this.parseExpression());
-            if (!this.check('ARRAY_END')) {
-                this.expect('OPERATOR', ',', 'Expected , or ]');
-            }
+        if (!this.check('ARRAY_END')) {
+            do {
+                elements.push(this.parseExpression());
+                if (!this.check('ARRAY_END')) {
+                    this.expect('OPERATOR', ',', 'Expected , or ]');
+                }
+            } while (this.match('OPERATOR', ','));
         }
         this.expect('ARRAY_END', 'Expected ]');
         return { type: 'array', elements };
