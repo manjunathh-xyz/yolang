@@ -38,7 +38,30 @@ set count = 0
 loop count < 3 {
   say "Count: " + count
   set count = count + 1
-}`
+}`,
+  'error-handling': `try {
+  set x = 10 / 0
+} catch err {
+  say "Error: " + err
+} finally {
+  say "Cleanup done"
+}`,
+  'advanced': `const PI = 3.14159
+
+fn circle_area(radius) {
+  return PI * radius * radius
+}
+
+set area = circle_area(5)
+say "Area: " + area
+
+# Optional chaining
+set user = { name: "Alice", profile: { age: 30 } }
+say user?.profile?.age
+
+# Ternary
+set status = area > 50 ? "large" : "small"
+say "Circle is " + status`
 };
 
 function initMonaco() {
@@ -63,10 +86,13 @@ function initMonaco() {
       }
     });
 
+    const savedTheme = localStorage.getItem('kexra-theme') || 'vs-dark';
+    const savedCode = localStorage.getItem('kexra-code') || examples.hello;
+
     editor = monaco.editor.create(document.getElementById('editor-container'), {
-      value: examples.hello,
+      value: savedCode,
       language: 'kexra',
-      theme: 'vs-dark',
+      theme: savedTheme,
       fontSize: 14,
       minimap: { enabled: false },
       lineNumbers: 'on',
@@ -89,6 +115,12 @@ function initMonaco() {
       model.setValue(
         model.getValue().replace(line, newLine)
       );
+    });
+
+    // Auto-save
+    editor.onDidChangeModelContent(() => {
+      const code = editor.getValue();
+      localStorage.setItem('kexra-code', code);
     });
   });
 }
@@ -148,14 +180,13 @@ function initCommandPalette() {
     errorsPanel.clear();
     tracePanel.clear();
   });
-  commandPalette.addCommand('Switch Theme', () => {
-    const currentTheme = editor._themeService._theme.themeName;
-    const newTheme = currentTheme === 'vs-dark' ? 'vs' : 'vs-dark';
-    monaco.editor.setTheme(newTheme);
-  });
+  commandPalette.addCommand('Switch Theme', switchTheme);
   commandPalette.addCommand('Open Docs', () => {
     window.open('https://kexra.js.org/docs', '_blank');
   });
+  commandPalette.addCommand('Save to Local', saveToLocal);
+  commandPalette.addCommand('Load from Local', loadFromLocal);
+  commandPalette.addCommand('Clear Local Save', clearLocalSave);
 }
 
 function runCode() {
@@ -173,6 +204,36 @@ function reset() {
   outputPanel.clear();
   errorsPanel.clear();
   tracePanel.clear();
+}
+
+function switchTheme() {
+  if (!editor) return;
+  const currentTheme = editor._themeService._theme.themeName;
+  const newTheme = currentTheme === 'vs-dark' ? 'vs' : 'vs-dark';
+  monaco.editor.setTheme(newTheme);
+  localStorage.setItem('kexra-theme', newTheme);
+}
+
+function saveToLocal() {
+  if (!editor) return;
+  const code = editor.getValue();
+  localStorage.setItem('kexra-code', code);
+  alert('Code saved to local storage!');
+}
+
+function loadFromLocal() {
+  if (!editor) return;
+  const code = localStorage.getItem('kexra-code');
+  if (code) {
+    editor.setValue(code);
+  } else {
+    alert('No saved code found.');
+  }
+}
+
+function clearLocalSave() {
+  localStorage.removeItem('kexra-code');
+  alert('Local save cleared!');
 }
 
 document.addEventListener('DOMContentLoaded', function() {
