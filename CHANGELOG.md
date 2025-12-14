@@ -13,16 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced a minimal landing page
 - Simplified project public surface
 
-## [0.9.6] - 2025-12-14
+## [0.9.7] - 2025-12-14
 
 ### Fixed
 
-- CLI parser syntax errors
-- Package manager issues
+- All TypeScript compilation errors
+- Parser and package manager issues resolved
 
 ### Notes
 
-- Stability improvements
+- Clean build achieved
 
 ## [0.9.4] - 2025-12-14
 
