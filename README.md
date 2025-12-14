@@ -2,7 +2,7 @@
 
 > A playful, beginner-friendly scripting language built with TypeScript
 
-**v0.4.0 - Functions & Documentation Release** ✨
+**v0.4.1 - Documentation Unification Release** ✨
 
 [![npm version](https://img.shields.io/npm/v/kexra.svg)](https://www.npmjs.com/package/kexra)
 [![GitHub license](https://img.shields.io/github/license/manjunathh-xyz/kexra)](https://github.com/manjunathh-xyz/kexra/blob/main/LICENSE)
@@ -54,9 +54,9 @@ kex run hello.kx
 
 Output:
 ```
-🚀 Kexra v0.4.0
+🚀 Kexra v0.4.1
 Running: hello.kx
-─────────────────────────
+────────────────────────
 Hello, Kexra!
 ```
 
@@ -67,7 +67,7 @@ kex repl
 ```
 
 ```
-🎧 Kexra REPL v0.4.0
+🎧 Kexra REPL v0.4.1
 Type 'help' for commands, 'exit' to quit
 kex> set x = 42
 kex> say x
@@ -75,6 +75,18 @@ kex> say x
 kex> exit
 Goodbye!
 ```
+
+## 📚 Documentation
+
+Full documentation is available at:
+https://kexra.js.org/docs
+
+The docs include:
+- Complete language reference
+- Tutorials and examples
+- REPL guide
+- Error handling
+- CLI reference
 
 ## 📖 Syntax
 

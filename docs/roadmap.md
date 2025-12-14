@@ -104,7 +104,7 @@ The roadmap is flexible and community-driven. Features are prioritized based on:
 ## Current Status
 
 - ✅ **v0.4.0**: Functions, website, documentation
-- 🔄 **v0.4.1**: Documentation unification (current)
+- ✅ **v0.4.1**: Documentation unification
 - 🚧 **v0.5.0**: Data structures (in development)
 
 ## Philosophy

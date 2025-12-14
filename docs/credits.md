@@ -25,7 +25,7 @@ Kexra began as a personal project to explore programming language design. What s
 - **v0.2.0** (2025-12-14): REPL and improved CLI
 - **v0.3.0** (2025-12-14): Official website and documentation
 - **v0.4.0** (2025-12-14): User-defined functions
-- **v0.4.1** (2025-12-14): Unified documentation
+- **v0.4.1** (2025-12-14): Documentation unification
 
 ## Inspirations
 
