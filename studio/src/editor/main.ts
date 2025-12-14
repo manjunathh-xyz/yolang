@@ -186,6 +186,23 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('run-btn')!.addEventListener('click', runCode);
   document.getElementById('reset-btn')!.addEventListener('click', reset);
 
+  const toggleReplBtn = document.getElementById('toggle-repl-btn')!;
+  const replPanel = document.getElementById('repl-container')!;
+  const replSplitter = document.getElementById('repl-splitter')!;
+
+  toggleReplBtn.addEventListener('click', () => {
+    const isHidden = replPanel.style.display === 'none';
+    if (isHidden) {
+      replPanel.style.display = 'flex';
+      replSplitter.style.display = 'block';
+      toggleReplBtn.textContent = 'Hide REPL';
+    } else {
+      replPanel.style.display = 'none';
+      replSplitter.style.display = 'none';
+      toggleReplBtn.textContent = 'Show REPL';
+    }
+  });
+
   // Resizable splitter
   const splitter = document.getElementById('repl-splitter')!;
   let isResizing = false;
