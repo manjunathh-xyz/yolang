@@ -11,8 +11,9 @@
     "start": "node dist/cli.js"
   },
   "keywords": ["language", "scripting", "toy", "beginner"],
-  "author": "Your Name",
-  "license": "MIT",
+   "author": "manjunathh-xyz",
+   "contributors": ["ramkrishna-xyz"],
+   "license": "MIT",
   "devDependencies": {
     "typescript": "^4.9.0",
     "@types/node": "^18.0.0"

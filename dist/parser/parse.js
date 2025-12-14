@@ -44,7 +44,10 @@ class Parser {
     parseSet() {
         this.advance(); // 'set'
         const name = this.consume('IDENT', 'Expected variable name').value;
-        this.consume('OPERATOR', 'Expected =').value === '=' || this.error(this.peek(), 'Expected =');
+        const opToken = this.consume('OPERATOR', 'Expected =');
+        if (opToken.value !== '=') {
+            throw this.error(opToken, 'Expected =');
+        }
         const expr = this.parseExpression();
         this.expectNewline();
         return { type: 'set', name, expression: expr };
