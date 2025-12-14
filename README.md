@@ -43,6 +43,12 @@ Each package must include:
 - Not a JavaScript replacement
 - Not a framework
 
+## Documentation
+
+Kexra documentation is hosted on GitHub Pages.
+
+🔗 https://sst.github.io/yolang/
+
 ## Links
 
 - [GitHub Repository](https://github.com/manjunathh-xyz/kexra)
