@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kexra - A Small, Friendly Scripting Language</title>
+    <meta name="description" content="Kexra is a simple interpreted scripting language designed for beginners, hobbyists, and anyone interested in language design.">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
 </head>
@@ -11,7 +12,7 @@
     <header>
         <div class="container">
             <img src="assets/logo.svg" alt="Kexra Logo" class="logo">
-            <p class="tagline">A small, friendly scripting language built for learning. <strong>v0.4.1</strong></p>
+            <p class="tagline">A small, friendly scripting language built for learning.</p>
         </div>
     </header>
 
@@ -42,129 +43,40 @@ say add(2, 3)</code></pre>
 kex run examples/hello.kx</code></pre>
                 <a href="https://github.com/manjunathh-xyz/kexra" class="btn">View on GitHub</a>
             </div>
+
+            <div class="cta">
+                <h3>📘 Read the Full Documentation</h3>
+                <p>Complete guides, tutorials, and reference for Kexra.</p>
+                <a href="https://github.com/manjunathh-xyz/kexra/tree/main/docs" class="btn primary">Read the Docs</a>
+            </div>
         </section>
 
-        <section id="docs">
-            <h2>Documentation</h2>
-
-            <h3>Syntax Overview</h3>
-            <div class="code-block">
-                <pre><code># Variables
-set name = "Kexra"
-set age = 25
-
-# Output
-say "Hello World"
-say name + " is " + age + " years old"
-
-# Math
-set result = (10 + 5) * 2 / 3
-
-# Conditionals
-check age >= 18 {
-  say "Adult"
-} else {
-  say "Minor"
-}
-
-# Loops
-set i = 0
-loop i < 5 {
-  say i
-  set i = i + 1
-}
-
-# Functions
-fn add(a, b) {
-  return a + b
-}
-
-say add(2, 3)</code></pre>
-            </div>
-
-            <h3>CLI Commands</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Command</th>
-                        <th>Description</th>
-                        <th>Example</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><code>kex run &lt;file&gt;</code></td>
-                        <td>Execute a Kexra file</td>
-                        <td><code>kex run script.kx</code></td>
-                    </tr>
-                    <tr>
-                        <td><code>kex repl</code></td>
-                        <td>Start interactive REPL</td>
-                        <td><code>kex repl</code></td>
-                    </tr>
-                    <tr>
-                        <td><code>kex version</code></td>
-                        <td>Show version</td>
-                        <td><code>kex version</code></td>
-                    </tr>
-                    <tr>
-                        <td><code>kex help</code></td>
-                        <td>Show help</td>
-                        <td><code>kex help</code></td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <h3>REPL Usage</h3>
-            <p>The REPL provides an interactive environment with persistent variables and multi-line support.</p>
-            <div class="code-block">
-                <pre><code>$ kex repl
-🎧 Kexra REPL v0.4.1
-Type 'help' for commands, 'exit' to quit
-kex> set x = 42
-kex> say x
-42
-kex> exit
-Goodbye!</code></pre>
-            </div>
-
-            <h3>Error Handling</h3>
-            <p>Kexra provides friendly error messages with file names, line numbers, and hints.</p>
-            <div class="code-block">
-                <pre><code>❌ SyntaxError
-File: broken.kx
-Line: 3
-
-  set x == 10
-        ^^
-
-Hint: Use "=" for assignment, not "=="</code></pre>
-            </div>
-
-            <h3>Roadmap</h3>
-            <ul>
-                <li>✅ Functions (v0.4.0)</li>
-                <li>Arrays & objects</li>
-                <li>File I/O</li>
-                <li>Standard library</li>
-                <li>Web playground</li>
-            </ul>
-        </section>
-
-        <section id="credits">
-            <h2>Credits</h2>
-            <p>Kexra is an open-source project built with community spirit ❤️</p>
-
-            <div class="contributors">
-                <div class="contributor">
-                    <h4>Manjunath H</h4>
-                    <p>Core Developer, Language Design, Architecture</p>
-                    <a href="https://github.com/manjunathh-xyz">GitHub</a>
+        <section id="features">
+            <h2>Why Kexra?</h2>
+            <div class="features-grid">
+                <div class="feature">
+                    <h3>🎯 Easy Syntax</h3>
+                    <p>Inspired by casual developer English, perfect for beginners.</p>
                 </div>
-                <div class="contributor">
-                    <h4>Ramkrishna</h4>
-                    <p>Core Contributor, Tooling & Design Support</p>
-                    <a href="https://github.com/ramkrishna-xyz">GitHub</a>
+                <div class="feature">
+                    <h3>⚡ Interpreted</h3>
+                    <p>Instant feedback with no compilation step required.</p>
+                </div>
+                <div class="feature">
+                    <h3>🖥️ Interactive REPL</h3>
+                    <p>Experiment and learn in real-time with the built-in REPL.</p>
+                </div>
+                <div class="feature">
+                    <h3>🔧 Extensible</h3>
+                    <p>Open-source and built for learning language internals.</p>
+                </div>
+                <div class="feature">
+                    <h3>📚 Educational</h3>
+                    <p>Perfect for understanding how programming languages work.</p>
+                </div>
+                <div class="feature">
+                    <h3>🧮 Functions</h3>
+                    <p>User-defined functions with parameters and return values.</p>
                 </div>
             </div>
         </section>
@@ -173,6 +85,11 @@ Hint: Use "=" for assignment, not "=="</code></pre>
     <footer>
         <div class="container">
             <p>&copy; 2025 Kexra. Built with ❤️ using TypeScript.</p>
+            <div class="footer-links">
+                <a href="https://github.com/manjunathh-xyz/kexra/tree/main/docs">Documentation</a>
+                <a href="https://github.com/manjunathh-xyz/kexra">GitHub</a>
+                <a href="https://github.com/manjunathh-xyz/kexra/blob/main/LICENSE">License</a>
+            </div>
         </div>
     </footer>
 
