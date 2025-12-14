@@ -1,1 +1,1 @@
-export const keywords = ['say', 'set', 'check', 'else', 'loop'];
+export const keywords = ['say', 'set', 'check', 'else', 'loop', 'fn', 'return'];

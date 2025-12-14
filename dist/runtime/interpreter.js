@@ -4,10 +4,14 @@ exports.Interpreter = void 0;
 const RuntimeError_1 = require("../errors/RuntimeError");
 class Interpreter {
     constructor() {
-        this.env = new Map();
+        this.envStack = [new Map()];
+        this.functions = new Map();
+    }
+    currentEnv() {
+        return this.envStack[this.envStack.length - 1];
     }
     getEnv() {
-        return Object.fromEntries(this.env);
+        return Object.fromEntries(this.currentEnv());
     }
     interpret(program) {
         for (const stmt of program) {
@@ -24,7 +28,7 @@ class Interpreter {
             case 'set':
                 const setStmt = stmt;
                 const val = this.evaluate(setStmt.expression);
-                this.env.set(setStmt.name, val);
+                this.currentEnv().set(setStmt.name, val);
                 break;
             case 'check':
                 const checkStmt = stmt;
@@ -47,6 +51,15 @@ class Interpreter {
                     }
                 }
                 break;
+            case 'function':
+                const funcStmt = stmt;
+                this.functions.set(funcStmt.name, funcStmt);
+                break;
+            case 'return':
+                const retStmt = stmt;
+                const returnValue = retStmt.expression ? this.evaluate(retStmt.expression) : null;
+                throw { type: 'return', value: returnValue };
+                break;
         }
     }
     evaluate(expr) {
@@ -56,12 +69,44 @@ class Interpreter {
                 return lit.value;
             case 'variable':
                 const varExpr = expr;
-                if (!this.env.has(varExpr.name)) {
+                if (!this.currentEnv().has(varExpr.name)) {
                     throw new RuntimeError_1.RuntimeError(`Undefined variable '${varExpr.name}'`, undefined, undefined, undefined, 'Make sure the variable is defined before use');
                 }
-                return this.env.get(varExpr.name);
+                return this.currentEnv().get(varExpr.name);
             case 'binary':
                 return this.evaluateBinary(expr);
+            case 'call':
+                return this.evaluateCall(expr);
+        }
+    }
+    evaluateCall(expr) {
+        const func = this.functions.get(expr.name);
+        if (!func) {
+            throw new RuntimeError_1.RuntimeError(`Undefined function '${expr.name}'`, undefined, undefined, undefined, 'Make sure the function is defined before use');
+        }
+        if (expr.args.length !== func.params.length) {
+            throw new RuntimeError_1.RuntimeError(`Function '${expr.name}' expects ${func.params.length} arguments, got ${expr.args.length}`);
+        }
+        // Create new environment
+        const newEnv = new Map(this.currentEnv());
+        for (let i = 0; i < func.params.length; i++) {
+            newEnv.set(func.params[i], this.evaluate(expr.args[i]));
+        }
+        this.envStack.push(newEnv);
+        try {
+            for (const stmt of func.body) {
+                this.executeStatement(stmt);
+            }
+            return null; // default return
+        }
+        catch (e) {
+            if (e && typeof e === 'object' && 'type' in e && e.type === 'return') {
+                return e.value;
+            }
+            throw e;
+        }
+        finally {
+            this.envStack.pop();
         }
     }
     evaluateBinary(expr) {

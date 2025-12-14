@@ -31,7 +31,7 @@ const interpreter_1 = require("../runtime/interpreter");
 const reporter_1 = require("../errors/reporter");
 const KexraError_1 = require("../errors/KexraError");
 function startRepl() {
-    console.log('🎧 Kexra REPL v0.2.0');
+    console.log(`🎧 Kexra REPL v${require('../../package.json').version}`);
     console.log('Type \'help\' for commands, \'exit\' to quit');
     const rl = readline.createInterface({
         input: process.stdin,

@@ -1,11 +1,16 @@
-import { Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression } from '../types';
+import { Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, FunctionDeclaration, ReturnStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, CallExpression } from '../types';
 import { RuntimeError } from '../errors/RuntimeError';
 
 export class Interpreter {
-  private env: Map<string, any> = new Map();
+  private envStack: Map<string, any>[] = [new Map()];
+  private functions: Map<string, FunctionDeclaration> = new Map();
+
+  private currentEnv(): Map<string, any> {
+    return this.envStack[this.envStack.length - 1];
+  }
 
   getEnv(): Record<string, any> {
-    return Object.fromEntries(this.env);
+    return Object.fromEntries(this.currentEnv());
   }
 
   interpret(program: Program) {
@@ -24,7 +29,7 @@ export class Interpreter {
       case 'set':
         const setStmt = stmt as SetStatement;
         const val = this.evaluate(setStmt.expression);
-        this.env.set(setStmt.name, val);
+        this.currentEnv().set(setStmt.name, val);
         break;
       case 'check':
         const checkStmt = stmt as CheckStatement;
@@ -46,6 +51,15 @@ export class Interpreter {
           }
         }
         break;
+      case 'function':
+        const funcStmt = stmt as FunctionDeclaration;
+        this.functions.set(funcStmt.name, funcStmt);
+        break;
+      case 'return':
+        const retStmt = stmt as ReturnStatement;
+        const returnValue = retStmt.expression ? this.evaluate(retStmt.expression) : null;
+        throw { type: 'return', value: returnValue };
+        break;
     }
   }
 
@@ -56,12 +70,43 @@ export class Interpreter {
         return lit.value;
       case 'variable':
         const varExpr = expr as VariableExpression;
-        if (!this.env.has(varExpr.name)) {
+        if (!this.currentEnv().has(varExpr.name)) {
            throw new RuntimeError(`Undefined variable '${varExpr.name}'`, undefined, undefined, undefined, 'Make sure the variable is defined before use');
          }
-        return this.env.get(varExpr.name);
+        return this.currentEnv().get(varExpr.name);
       case 'binary':
         return this.evaluateBinary(expr as BinaryExpression);
+      case 'call':
+        return this.evaluateCall(expr as CallExpression);
+    }
+  }
+
+  private evaluateCall(expr: CallExpression): any {
+    const func = this.functions.get(expr.name);
+    if (!func) {
+      throw new RuntimeError(`Undefined function '${expr.name}'`, undefined, undefined, undefined, 'Make sure the function is defined before use');
+    }
+    if (expr.args.length !== func.params.length) {
+      throw new RuntimeError(`Function '${expr.name}' expects ${func.params.length} arguments, got ${expr.args.length}`);
+    }
+    // Create new environment
+    const newEnv = new Map(this.currentEnv());
+    for (let i = 0; i < func.params.length; i++) {
+      newEnv.set(func.params[i], this.evaluate(expr.args[i]));
+    }
+    this.envStack.push(newEnv);
+    try {
+      for (const stmt of func.body) {
+        this.executeStatement(stmt);
+      }
+      return null; // default return
+    } catch (e) {
+      if (e && typeof e === 'object' && 'type' in e && (e as any).type === 'return') {
+        return (e as any).value;
+      }
+      throw e;
+    } finally {
+      this.envStack.pop();
     }
   }
 

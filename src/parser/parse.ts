@@ -1,4 +1,4 @@
-import { Token, TokenType, Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression } from '../types';
+import { Token, TokenType, Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, FunctionDeclaration, ReturnStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, CallExpression } from '../types';
 import { SyntaxError } from '../errors/SyntaxError';
 
 export class Parser {
@@ -35,6 +35,10 @@ export class Parser {
           return this.parseCheck();
         case 'loop':
           return this.parseLoop();
+        case 'fn':
+          return this.parseFunction();
+        case 'return':
+          return this.parseReturn();
         default:
           throw this.error(token, `Unexpected keyword '${token.value}'`);
       }
@@ -80,6 +84,32 @@ export class Parser {
     this.consume('BLOCK_START', 'Expected {');
     const body = this.parseBlock();
     return { type: 'loop', condition, body };
+  }
+
+  private parseFunction(): FunctionDeclaration {
+    this.advance(); // 'fn'
+    const name = this.consume('IDENT', 'Expected function name').value;
+    this.consume('OPERATOR', 'Expected (', '(');
+    const params: string[] = [];
+    if (!this.check('OPERATOR', ')')) {
+      do {
+        params.push(this.consume('IDENT', 'Expected parameter name').value);
+      } while (this.match('OPERATOR', ','));
+    }
+    this.consume('OPERATOR', 'Expected )', ')');
+    this.consume('BLOCK_START', 'Expected {');
+    const body = this.parseBlock();
+    return { type: 'function', name, params, body };
+  }
+
+  private parseReturn(): ReturnStatement {
+    this.advance(); // 'return'
+    let expression: Expression | undefined;
+    if (!this.check('NEWLINE') && !this.isAtEnd()) {
+      expression = this.parseExpression();
+    }
+    this.expectNewline();
+    return { type: 'return', expression };
   }
 
   private parseBlock(): Statement[] {
@@ -152,7 +182,19 @@ export class Parser {
       return { type: 'literal', valueType: 'string', value: this.previous().value } as LiteralExpression;
     }
     if (this.match('IDENT')) {
-      return { type: 'variable', name: this.previous().value } as VariableExpression;
+      const name = this.previous().value;
+      if (this.match('OPERATOR', '(')) {
+        const args: Expression[] = [];
+        if (!this.check('OPERATOR', ')')) {
+          do {
+            args.push(this.parseExpression());
+          } while (this.match('OPERATOR', ','));
+        }
+        this.consume('OPERATOR', 'Expected )', ')');
+        return { type: 'call', name, args } as CallExpression;
+      } else {
+        return { type: 'variable', name } as VariableExpression;
+      }
     }
     if (this.match('OPERATOR', '(')) {
       const expr = this.parseExpression();

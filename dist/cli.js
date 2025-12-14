@@ -8,8 +8,9 @@ const interpreter_1 = require("./runtime/interpreter");
 const reporter_1 = require("./errors/reporter");
 const repl_1 = require("./repl/repl");
 const KexraError_1 = require("./errors/KexraError");
+const VERSION = JSON.parse((0, fs_1.readFileSync)('./package.json', 'utf-8')).version;
 function showHelp() {
-    console.log('Kexra v0.2.0');
+    console.log(`Kexra v${VERSION}`);
     console.log('');
     console.log('Usage:');
     console.log('  kex run <file.kx>     Run a Kexra file');
@@ -28,7 +29,7 @@ function main() {
         return;
     }
     if (args[0] === 'version' || args[0] === '-v') {
-        console.log('Kexra v0.2.0');
+        console.log(`Kexra v${VERSION}`);
         return;
     }
     if (args[0] === 'repl') {
@@ -37,7 +38,7 @@ function main() {
     }
     if (args[0] === 'run' && args.length === 2) {
         const filePath = args[1];
-        console.log('🚀 Kexra v0.2.0');
+        console.log(`🚀 Kexra v${VERSION}`);
         console.log(`Running: ${filePath}`);
         console.log('──────────────────────────');
         let source;

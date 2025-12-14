@@ -2,6 +2,8 @@
 
 > A playful, beginner-friendly scripting language built with TypeScript
 
+**v0.4.0 - Functions & Documentation Release** ✨
+
 [![npm version](https://img.shields.io/npm/v/kexra.svg)](https://www.npmjs.com/package/kexra)
 [![GitHub license](https://img.shields.io/github/license/manjunathh-xyz/kexra)](https://github.com/manjunathh-xyz/kexra/blob/main/LICENSE)
 [![Build Status](https://img.shields.io/github/actions/workflow/status/manjunathh-xyz/kexra/ci.yml)](https://github.com/manjunathh-xyz/kexra/actions)
@@ -15,6 +17,7 @@ Kexra is a simple interpreted scripting language designed for beginners, hobbyis
 - 🖥️ **Interactive REPL**: Experiment in real-time
 - 🔧 **Extensible**: Open-source and built for learning
 - 📚 **Educational**: Perfect for understanding language internals
+- 🧮 **Functions**: User-defined functions with parameters and return values
 
 ## 📦 Installation
 
@@ -51,9 +54,9 @@ kex run hello.kx
 
 Output:
 ```
-🚀 Kexra v0.2.0
+🚀 Kexra v0.4.0
 Running: hello.kx
-──────────────────────────
+─────────────────────────
 Hello, Kexra!
 ```
 
@@ -64,7 +67,7 @@ kex repl
 ```
 
 ```
-🎧 Kexra REPL v0.2.0
+🎧 Kexra REPL v0.4.0
 Type 'help' for commands, 'exit' to quit
 kex> set x = 42
 kex> say x
@@ -116,9 +119,20 @@ loop i < 5 {
 }
 ```
 
+### Functions
+
+```kx
+fn add(a, b) {
+  return a + b
+}
+
+set result = add(2, 3)
+say result  # Outputs: 5
+```
+
 ### Comments
 
-```yo
+```kx
 # This is a comment
 set x = 10  # Inline comment
 ```
@@ -247,7 +261,7 @@ Hint: Use "=" for assignment, not "=="
 
 ## 🛣️ Roadmap
 
-- [ ] Functions and procedures
+- [x] Functions and procedures
 - [ ] Arrays and objects
 - [ ] File I/O operations
 - [ ] Standard library

@@ -9,8 +9,10 @@ import { startRepl } from './repl/repl';
 import { CliError } from './errors/CliError';
 import { KexraError } from './errors/KexraError';
 
+const VERSION = JSON.parse(readFileSync('./package.json', 'utf-8')).version;
+
 function showHelp() {
-  console.log('Kexra v0.2.0');
+  console.log(`Kexra v${VERSION}`);
   console.log('');
   console.log('Usage:');
   console.log('  kex run <file.kx>     Run a Kexra file');
@@ -32,7 +34,7 @@ function main() {
   }
 
   if (args[0] === 'version' || args[0] === '-v') {
-    console.log('Kexra v0.2.0');
+    console.log(`Kexra v${VERSION}`);
     return;
   }
 
@@ -43,7 +45,7 @@ function main() {
 
   if (args[0] === 'run' && args.length === 2) {
     const filePath = args[1];
-    console.log('🚀 Kexra v0.2.0');
+    console.log(`🚀 Kexra v${VERSION}`);
     console.log(`Running: ${filePath}`);
     console.log('──────────────────────────');
 

@@ -31,6 +31,10 @@ class Parser {
                     return this.parseCheck();
                 case 'loop':
                     return this.parseLoop();
+                case 'fn':
+                    return this.parseFunction();
+                case 'return':
+                    return this.parseReturn();
                 default:
                     throw this.error(token, `Unexpected keyword '${token.value}'`);
             }
@@ -72,6 +76,30 @@ class Parser {
         this.consume('BLOCK_START', 'Expected {');
         const body = this.parseBlock();
         return { type: 'loop', condition, body };
+    }
+    parseFunction() {
+        this.advance(); // 'fn'
+        const name = this.consume('IDENT', 'Expected function name').value;
+        this.consume('OPERATOR', 'Expected (', '(');
+        const params = [];
+        if (!this.check('OPERATOR', ')')) {
+            do {
+                params.push(this.consume('IDENT', 'Expected parameter name').value);
+            } while (this.match('OPERATOR', ','));
+        }
+        this.consume('OPERATOR', 'Expected )', ')');
+        this.consume('BLOCK_START', 'Expected {');
+        const body = this.parseBlock();
+        return { type: 'function', name, params, body };
+    }
+    parseReturn() {
+        this.advance(); // 'return'
+        let expression;
+        if (!this.check('NEWLINE') && !this.isAtEnd()) {
+            expression = this.parseExpression();
+        }
+        this.expectNewline();
+        return { type: 'return', expression };
     }
     parseBlock() {
         const statements = [];
@@ -136,7 +164,20 @@ class Parser {
             return { type: 'literal', valueType: 'string', value: this.previous().value };
         }
         if (this.match('IDENT')) {
-            return { type: 'variable', name: this.previous().value };
+            const name = this.previous().value;
+            if (this.match('OPERATOR', '(')) {
+                const args = [];
+                if (!this.check('OPERATOR', ')')) {
+                    do {
+                        args.push(this.parseExpression());
+                    } while (this.match('OPERATOR', ','));
+                }
+                this.consume('OPERATOR', 'Expected )', ')');
+                return { type: 'call', name, args };
+            }
+            else {
+                return { type: 'variable', name };
+            }
         }
         if (this.match('OPERATOR', '(')) {
             const expr = this.parseExpression();

@@ -17,7 +17,7 @@ export interface Token {
 }
 
 export interface Expression {
-  type: 'literal' | 'variable' | 'binary';
+  type: 'literal' | 'variable' | 'binary' | 'call';
 }
 
 export interface LiteralExpression extends Expression {
@@ -38,8 +38,14 @@ export interface BinaryExpression extends Expression {
   right: Expression;
 }
 
+export interface CallExpression extends Expression {
+  type: 'call';
+  name: string;
+  args: Expression[];
+}
+
 export interface Statement {
-  type: 'say' | 'set' | 'check' | 'loop';
+  type: 'say' | 'set' | 'check' | 'loop' | 'function' | 'return';
 }
 
 export interface SayStatement extends Statement {
@@ -64,6 +70,18 @@ export interface LoopStatement extends Statement {
   type: 'loop';
   condition: Expression;
   body: Statement[];
+}
+
+export interface FunctionDeclaration extends Statement {
+  type: 'function';
+  name: string;
+  params: string[];
+  body: Statement[];
+}
+
+export interface ReturnStatement extends Statement {
+  type: 'return';
+  expression?: Expression;
 }
 
 export type Program = Statement[];

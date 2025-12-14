@@ -6,7 +6,7 @@ import { reportError } from '../errors/reporter';
 import { KexraError } from '../errors/KexraError';
 
 export function startRepl() {
-  console.log('🎧 Kexra REPL v0.2.0');
+  console.log(`🎧 Kexra REPL v${require('../../package.json').version}`);
   console.log('Type \'help\' for commands, \'exit\' to quit');
 
   const rl = readline.createInterface({

@@ -90,7 +90,7 @@ function tokenize(source, filePath) {
             column += 2;
             continue;
         }
-        if ('+-*/><='.includes(char)) {
+        if ('+-*/><=(),'.includes(char)) {
             tokens.push({ type: 'OPERATOR', value: char, line, column });
             pos++;
             column++;
