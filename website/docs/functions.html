@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Functions - Kexra Documentation</title>
+    <meta name="description" content="Learn about functions in Kexra - user-defined functions with parameters and return values.">
+    <link rel="stylesheet" href="../style.css">
+    <link rel="icon" href="../assets/logo.svg">
+</head>
+<body>
+    <header>
+        <nav>
+            <div class="nav-container">
+                <div class="logo">
+                    <h1><a href="../index.html" style="color: white; text-decoration: none;">Kexra</a></h1>
+                    <span class="tagline">Functions</span>
+                </div>
+                <div class="nav-links">
+                    <a href="../index.html">Home</a>
+                    <a href="basics.html">Basics</a>
+                    <a href="functions.html" class="active">Functions</a>
+                    <a href="repl.html">REPL</a>
+                    <a href="roadmap.html">Roadmap</a>
+                    <a href="https://github.com/manjunathh-xyz/kexra" target="_blank" class="github-link">GitHub</a>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <div class="container">
+                <h2>Functions</h2>
+                <p>Kexra supports user-defined functions with parameters and return values. Functions help organize code and make it reusable.</p>
+
+                <div class="docs-section">
+                    <h3>Defining Functions</h3>
+                    <p>Use the <code>fn</code> keyword to define a function:</p>
+                    <pre><code>fn add(a, b) {
+  return a + b
+}</code></pre>
+                </div>
+
+                <div class="docs-section">
+                    <h3>Calling Functions</h3>
+                    <p>Call functions by name with parentheses:</p>
+                    <pre><code>set result = add(2, 3)
+say result  # Outputs: 5</code></pre>
+                </div>
+
+                <div class="docs-section">
+                    <h3>Function Scope</h3>
+                    <p>Functions have their own local scope. Variables defined inside functions are not accessible outside:</p>
+                    <pre><code>fn test() {
+  set local = "inside"
+  return local
+}
+
+say test()  # Outputs: inside
+say local   # Error: undefined variable</code></pre>
+                    <p>However, functions can access global variables:</p>
+                    <pre><code>set global = "world"
+
+fn greet() {
+  return "Hello, " + global
+}
+
+say greet()  # Outputs: Hello, world</code></pre>
+                </div>
+
+                <div class="docs-section">
+                    <h3>Return Values</h3>
+                    <p>Use <code>return</code> to exit a function and return a value:</p>
+                    <pre><code>fn multiply(x, y) {
+  return x * y
+}
+
+say multiply(4, 5)  # Outputs: 20</code></pre>
+                    <p>If no return statement is used, the function returns <code>null</code>:</p>
+                    <pre><code>fn printMessage(msg) {
+  say msg
+  # No return statement
+}
+
+set result = printMessage("Hello")
+say result  # Outputs: null</code></pre>
+                </div>
+
+                <div class="docs-section">
+                    <h3>Parameters</h3>
+                    <p>Functions can have zero or more parameters:</p>
+                    <pre><code>fn greet() {
+  say "Hello!"
+}
+
+fn addThree(a, b, c) {
+  return a + b + c
+}
+
+greet()              # Outputs: Hello!
+say addThree(1,2,3)  # Outputs: 6</code></pre>
+                </div>
+
+                <div class="docs-section">
+                    <h3>Complete Example</h3>
+                    <pre><code>fn factorial(n) {
+  check n <= 1 {
+    return 1
+  } else {
+    return n * factorial(n - 1)
+  }
+}
+
+say factorial(5)  # Outputs: 120</code></pre>
+                </div>
+
+                <div class="docs-section">
+                    <h3>Important Notes</h3>
+                    <ul>
+                        <li>Functions must be defined before they are called</li>
+                        <li>Parameters are passed by value</li>
+                        <li>Functions can call other functions</li>
+                        <li>Recursion is supported</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Kexra. MIT License. Built with ❤️ using TypeScript.</p>
+            <div class="footer-links">
+                <a href="https://github.com/manjunathh-xyz/kexra" target="_blank">GitHub</a>
+                <a href="https://github.com/manjunathh-xyz/kexra/blob/main/LICENSE" target="_blank">License</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="../script.js"></script>
+</body>
+</html>
