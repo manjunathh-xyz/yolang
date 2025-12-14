@@ -1,0 +1,12 @@
+set x = 10
+set name = "Yolang"
+say "Hello, " + name
+check x > 5 {
+  say "x is big"
+} else {
+  say "x is small"
+}
+loop x < 13 {
+  say x
+  set x = x + 1
+}

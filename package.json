@@ -1,0 +1,20 @@
+{
+  "name": "yolang",
+  "version": "0.1.0",
+  "description": "A playful, beginner-friendly scripting language",
+  "main": "dist/cli.js",
+  "bin": {
+    "yo": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js"
+  },
+  "keywords": ["language", "scripting", "toy", "beginner"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^4.9.0",
+    "@types/node": "^18.0.0"
+  }
+}
