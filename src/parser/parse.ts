@@ -1,4 +1,4 @@
-import { Token, TokenType, Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression } from '../types';
+import { Token, TokenType, Program, Statement, SayStatement, SetStatement, ConstStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, TryStatement, SwitchStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression, TernaryExpression, NilCoalescingExpression, OptionalChainExpression } from '../types';
 import { SyntaxError } from '../errors/SyntaxError';
 
 export class Parser {
@@ -31,6 +31,8 @@ export class Parser {
           return this.parseSay();
         case 'set':
           return this.parseSet();
+        case 'const':
+          return this.parseConst();
         case 'check':
           return this.parseCheck();
         case 'loop':
@@ -45,6 +47,10 @@ export class Parser {
           return this.parseBreak();
         case 'continue':
           return this.parseContinue();
+        case 'try':
+          return this.parseTry();
+        case 'switch':
+          return this.parseSwitch();
         default:
           throw this.error(token, `Unexpected keyword '${token.value}'`);
       }
@@ -96,16 +102,25 @@ export class Parser {
     this.advance(); // 'fn'
     const name = this.consume('IDENT', 'Expected function name').value;
     this.consume('OPERATOR', 'Expected (', '(');
-    const params: string[] = [];
+    const params: { name: string; defaultValue?: Expression }[] = [];
+    let restParam: string | undefined;
     if (!this.check('OPERATOR', ')')) {
       do {
-        params.push(this.consume('IDENT', 'Expected parameter name').value);
+        const paramName = this.consume('IDENT', 'Expected parameter name').value;
+        let defaultValue: Expression | undefined;
+        if (this.match('OPERATOR', '=')) {
+          defaultValue = this.parseExpression();
+        }
+        params.push({ name: paramName, defaultValue });
       } while (this.match('OPERATOR', ','));
+      if (this.match('OPERATOR', '...')) {
+        restParam = this.consume('IDENT', 'Expected rest parameter name').value;
+      }
     }
     this.consume('OPERATOR', 'Expected )', ')');
     this.consume('BLOCK_START', 'Expected {');
     const body = this.parseBlock();
-    return { type: 'function', name, params, body };
+    return { type: 'function', name, params, restParam, body };
   }
 
   private parseReturn(): ReturnStatement {
@@ -140,6 +155,59 @@ export class Parser {
     return { type: 'continue' };
   }
 
+  private parseConst(): ConstStatement {
+    this.advance(); // 'const'
+    const name = this.consume('IDENT', 'Expected variable name').value;
+    this.consume('OPERATOR', 'Expected =', '=');
+    const expression = this.parseExpression();
+    this.expectNewline();
+    return { type: 'const', name, expression };
+  }
+
+  private parseTry(): TryStatement {
+    this.advance(); // 'try'
+    this.consume('BLOCK_START', 'Expected { after try');
+    const tryBody = this.parseBlock();
+    let catchParam: string | undefined;
+    let catchBody: Statement[] | undefined;
+    if (this.match('KEYWORD', 'catch')) {
+      this.consume('OPERATOR', 'Expected ( after catch', '(');
+      catchParam = this.consume('IDENT', 'Expected catch parameter').value;
+      this.consume('OPERATOR', 'Expected )', ')');
+      this.consume('BLOCK_START', 'Expected { after catch');
+      catchBody = this.parseBlock();
+    }
+    let finallyBody: Statement[] | undefined;
+    if (this.match('KEYWORD', 'finally')) {
+      this.consume('BLOCK_START', 'Expected { after finally');
+      finallyBody = this.parseBlock();
+    }
+    return { type: 'try', tryBody, catchParam, catchBody, finallyBody };
+  }
+
+  private parseSwitch(): SwitchStatement {
+    this.advance(); // 'switch'
+    const expression = this.parseExpression();
+    this.consume('BLOCK_START', 'Expected { after switch');
+    const cases: { value: Expression; body: Statement[] }[] = [];
+    let defaultCase: Statement[] | undefined;
+    while (!this.check('BLOCK_END') && !this.isAtEnd()) {
+      if (this.match('KEYWORD', 'case')) {
+        const value = this.parseExpression();
+        this.consume('BLOCK_START', 'Expected { after case value');
+        const body = this.parseBlock();
+        cases.push({ value, body });
+      } else if (this.match('KEYWORD', 'default')) {
+        this.consume('BLOCK_START', 'Expected { after default');
+        defaultCase = this.parseBlock();
+      } else {
+        throw this.error(this.peek(), 'Expected case or default in switch');
+      }
+    }
+    this.consume('BLOCK_END', 'Expected } after switch');
+    return { type: 'switch', expression, cases, defaultCase };
+  }
+
   private parseBlock(): Statement[] {
     const statements: Statement[] = [];
     while (!this.check('BLOCK_END') && !this.isAtEnd()) {
@@ -154,7 +222,27 @@ export class Parser {
   }
 
   private parseExpression(): Expression {
-    return this.parseLogical();
+    return this.parseTernary();
+  }
+
+  private parseTernary(): Expression {
+    const expr = this.parseNilCoalescing();
+    if (this.match('OPERATOR', '?')) {
+      const thenBranch = this.parseExpression();
+      this.consume('OPERATOR', 'Expected : in ternary', ':');
+      const elseBranch = this.parseTernary(); // right associative
+      return { type: 'ternary', condition: expr, thenBranch, elseBranch } as TernaryExpression;
+    }
+    return expr;
+  }
+
+  private parseNilCoalescing(): Expression {
+    const expr = this.parseLogical();
+    if (this.match('OPERATOR', '??')) {
+      const right = this.parseNilCoalescing();
+      return { type: 'nil-coalescing', left: expr, right } as NilCoalescingExpression;
+    }
+    return expr;
   }
 
   private parseLogical(): Expression {
@@ -293,11 +381,11 @@ export class Parser {
       expr = { type: 'index', object: expr, index } as IndexExpression;
     }
 
-    // Handle nil-safe access
+    // Handle optional chaining
     if (this.match('OPERATOR', '?')) {
       this.consume('OPERATOR', 'Expected . after ?', '.');
       const property = this.consume('IDENT', 'Expected property name').value;
-      expr = { type: 'nil-safe', object: expr, property } as NilSafeExpression;
+      expr = { type: 'optional-chain', object: expr, property } as OptionalChainExpression;
     }
 
     // Handle function calls

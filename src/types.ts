@@ -17,7 +17,7 @@ export interface Token {
 }
 
 export interface Expression {
-  type: 'literal' | 'variable' | 'binary' | 'logical' | 'call' | 'array' | 'object' | 'index' | 'nil-safe' | 'range';
+  type: 'literal' | 'variable' | 'binary' | 'logical' | 'call' | 'array' | 'object' | 'index' | 'nil-safe' | 'range' | 'ternary' | 'nil-coalescing' | 'optional-chain';
 }
 
 export interface LiteralExpression extends Expression {
@@ -89,8 +89,27 @@ export interface RangeExpression extends Expression {
   end: Expression;
 }
 
+export interface TernaryExpression extends Expression {
+  type: 'ternary';
+  condition: Expression;
+  thenBranch: Expression;
+  elseBranch: Expression;
+}
+
+export interface NilCoalescingExpression extends Expression {
+  type: 'nil-coalescing';
+  left: Expression;
+  right: Expression;
+}
+
+export interface OptionalChainExpression extends Expression {
+  type: 'optional-chain';
+  object: Expression;
+  property: string;
+}
+
 export interface Statement {
-  type: 'say' | 'set' | 'check' | 'loop' | 'for' | 'function' | 'return' | 'break' | 'continue';
+  type: 'say' | 'set' | 'const' | 'check' | 'loop' | 'for' | 'function' | 'return' | 'break' | 'continue' | 'try' | 'switch';
 }
 
 export interface SayStatement extends Statement {
@@ -120,7 +139,8 @@ export interface LoopStatement extends Statement {
 export interface FunctionDeclaration extends Statement {
   type: 'function';
   name: string;
-  params: string[];
+  params: { name: string; defaultValue?: Expression }[];
+  restParam?: string;
   body: Statement[];
 }
 
@@ -142,6 +162,27 @@ export interface BreakStatement extends Statement {
 
 export interface ContinueStatement extends Statement {
   type: 'continue';
+}
+
+export interface ConstStatement extends Statement {
+  type: 'const';
+  name: string;
+  expression: Expression;
+}
+
+export interface TryStatement extends Statement {
+  type: 'try';
+  tryBody: Statement[];
+  catchParam?: string;
+  catchBody?: Statement[];
+  finallyBody?: Statement[];
+}
+
+export interface SwitchStatement extends Statement {
+  type: 'switch';
+  expression: Expression;
+  cases: { value: Expression; body: Statement[] }[];
+  defaultCase?: Statement[];
 }
 
 export type Program = Statement[];

@@ -35,6 +35,35 @@ say result  # Outputs: 5
 
 Parameters are passed by value and become local variables.
 
+## Default Parameters
+
+Provide default values for parameters:
+
+```kx
+fn greet(name = "guest") {
+  say "Hello, " + name + "!"
+}
+
+greet()        # Hello, guest!
+greet("Alice") # Hello, Alice!
+```
+
+## Rest Parameters
+
+Collect remaining arguments into an array:
+
+```kx
+fn sum(...nums) {
+  set total = 0
+  for i in 1..len(nums) {
+    set total = total + nums[i-1]
+  }
+  return total
+}
+
+say sum(1, 2, 3, 4)  # Outputs: 10
+```
+
 ## Return Values
 
 Use `return` to exit and return a value:
@@ -115,6 +144,43 @@ fn main() {
 
 main()
 ```
+
+## Closures
+
+Functions capture variables from their defining scope:
+
+```kx
+fn make_counter() {
+  set count = 0
+  fn increment() {
+    set count = count + 1
+    return count
+  }
+  return increment
+}
+
+set counter = make_counter()
+say counter()  # 1
+say counter()  # 2
+```
+
+## Higher-Order Functions
+
+Functions can be passed as arguments and returned from other functions:
+
+```kx
+fn apply_twice(func, value) {
+  return func(func(value))
+}
+
+fn double(x) {
+  return x * 2
+}
+
+say apply_twice(double, 3)  # Outputs: 12
+```
+
+This enables powerful functional programming patterns.
 
 ## Best Practices
 

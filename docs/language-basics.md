@@ -43,7 +43,7 @@ Comments are ignored by the interpreter and are for human readers.
 
 Kexra has these reserved keywords:
 
-- `say`, `set`, `check`, `else`, `loop`, `fn`, `return`, `true`, `false`, `and`, `or`, `not`, `for`, `in`, `break`, `continue`
+- `say`, `set`, `const`, `check`, `else`, `loop`, `fn`, `return`, `true`, `false`, `and`, `or`, `not`, `for`, `in`, `break`, `continue`, `try`, `catch`, `finally`, `switch`, `case`, `default`
 
 These cannot be used as variable or function names.
 

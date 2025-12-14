@@ -1,1 +1,1 @@
-export const keywords = ['say', 'set', 'check', 'else', 'loop', 'fn', 'return', 'true', 'false', 'and', 'or', 'not', 'for', 'in', 'break', 'continue'];
+export const keywords = ['say', 'set', 'check', 'else', 'loop', 'fn', 'return', 'true', 'false', 'and', 'or', 'not', 'for', 'in', 'break', 'continue', 'const', 'try', 'catch', 'finally', 'switch', 'case', 'default'];

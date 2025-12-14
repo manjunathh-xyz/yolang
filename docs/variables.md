@@ -4,13 +4,22 @@ Variables store values that can be used and modified throughout your program.
 
 ## Declaring Variables
 
-Use `set` to create a variable and assign a value:
+Use `set` to create a mutable variable:
 
 ```kx
 set name = "Alice"
 set age = 25
 set pi = 3.14159
 ```
+
+Use `const` for immutable variables:
+
+```kx
+const PI = 3.14159
+const MAX_USERS = 100
+```
+
+Attempting to reassign a `const` causes a runtime error.
 
 ## Data Types
 

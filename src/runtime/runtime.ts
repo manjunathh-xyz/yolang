@@ -17,6 +17,8 @@ export interface RuntimeResult {
 export interface RuntimeOptions {
   debug?: boolean;
   trace?: boolean;
+  maxSteps?: number;
+  deterministic?: boolean;
 }
 
 type HookCallback = (data: any) => void;

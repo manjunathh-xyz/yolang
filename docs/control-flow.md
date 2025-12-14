@@ -224,6 +224,41 @@ loop i <= 100 {
 say "Sum: " + sum
 ```
 
+## Ternary Expressions
+
+For simple conditional expressions:
+
+```kx
+set max = a > b ? a : b
+set greeting = user ?? "guest"
+```
+
+## Switch Statements
+
+For multiple conditions:
+
+```kx
+switch day {
+  case 1 { say "Monday" }
+  case 2 { say "Tuesday" }
+  default { say "Other day" }
+}
+```
+
+## Error Handling
+
+Use try/catch for error handling:
+
+```kx
+try {
+  risky_operation()
+} catch err {
+  say "Error: " + err
+} finally {
+  cleanup()
+}
+```
+
 ## Best Practices
 
 - Use clear, readable conditions
@@ -231,6 +266,7 @@ say "Sum: " + sum
 - Ensure loops have exit conditions
 - Use functions for complex logic
 - Test edge cases
+- Handle errors appropriately
 
 ## Next Steps
 

@@ -7,7 +7,7 @@
 
 Kexra is an interpreted scripting language designed for learning programming concepts. Simple syntax, clear error messages, and comprehensive documentation make it perfect for beginners and students.
 
-**v0.7.0 - Debug Runtime & Hosted Kexra Studio** ✨
+**v0.8.0 - Language Power & Safety** ✨
 
 ## 📦 Installation
 

@@ -11,7 +11,9 @@ class Interpreter {
         this.options = options;
         this.emit = emit;
         this.envStack = [new Map()];
+        this.consts = new Set();
         this.functions = new Map();
+        this.stepCount = 0;
     }
     currentEnv() {
         return this.envStack[this.envStack.length - 1];
@@ -45,9 +47,16 @@ class Interpreter {
     }
     interpret(program) {
         for (const stmt of program) {
+            this.checkStepLimit();
             this.executeStatement(stmt);
         }
         return values_1.Value.null(); // or last value, but for now null
+    }
+    checkStepLimit() {
+        this.stepCount++;
+        if (this.options.maxSteps && this.stepCount > this.options.maxSteps) {
+            throw new RuntimeError_1.RuntimeError('Execution step limit exceeded');
+        }
     }
     executeStatement(stmt) {
         switch (stmt.type) {
@@ -58,8 +67,20 @@ class Interpreter {
                 break;
             case 'set':
                 const setStmt = stmt;
+                if (this.consts.has(setStmt.name)) {
+                    throw new RuntimeError_1.RuntimeError(`Cannot reassign const variable '${setStmt.name}'`);
+                }
                 const val = this.evaluate(setStmt.expression);
                 this.currentEnv().set(setStmt.name, val);
+                break;
+            case 'const':
+                const constStmt = stmt;
+                if (this.consts.has(constStmt.name)) {
+                    throw new RuntimeError_1.RuntimeError(`Const variable '${constStmt.name}' already declared`);
+                }
+                const constVal = this.evaluate(constStmt.expression);
+                this.currentEnv().set(constStmt.name, constVal);
+                this.consts.add(constStmt.name);
                 break;
             case 'check':
                 const checkStmt = stmt;
@@ -112,6 +133,14 @@ class Interpreter {
             case 'continue':
                 throw { type: 'continue' };
                 break;
+            case 'try':
+                const tryStmt = stmt;
+                this.executeTry(tryStmt);
+                break;
+            case 'switch':
+                const switchStmt = stmt;
+                this.executeSwitch(switchStmt);
+                break;
         }
     }
     evaluate(expr) {
@@ -153,6 +182,12 @@ class Interpreter {
                 return this.evaluateNilSafe(expr);
             case 'range':
                 return this.evaluateRange(expr);
+            case 'ternary':
+                return this.evaluateTernary(expr);
+            case 'nil-coalescing':
+                return this.evaluateNilCoalescing(expr);
+            case 'optional-chain':
+                return this.evaluateOptionalChain(expr);
         }
     }
     evaluateIndex(expr) {
@@ -192,19 +227,29 @@ class Interpreter {
         if (!func) {
             throw new RuntimeError_1.RuntimeError(`Undefined function '${expr.name}'`, undefined, undefined, undefined, 'Make sure the function is defined before use');
         }
-        if (expr.args.length !== func.params.length) {
-            throw new RuntimeError_1.RuntimeError(`Function '${expr.name}' expects ${func.params.length} arguments, got ${expr.args.length}`);
-        }
-        // Emit call event
-        if (this.options.trace) {
-            this.emit('call', { function: expr.name, args: expr.args.map(arg => this.evaluate(arg).toString()) });
+        // Handle default and rest params
+        const expectedArgs = func.params.filter(p => !p.defaultValue).length;
+        const maxArgs = func.restParam ? Infinity : func.params.length;
+        if (expr.args.length < expectedArgs || expr.args.length > maxArgs) {
+            throw new RuntimeError_1.RuntimeError(`Function '${expr.name}' expects ${expectedArgs} to ${maxArgs} arguments, got ${expr.args.length}`);
         }
         // Create new environment
-        const newEnv = new Map(this.currentEnv());
-        for (let i = 0; i < func.params.length; i++) {
-            newEnv.set(func.params[i], this.evaluate(expr.args[i]));
+        const funcEnv = new Map(this.currentEnv());
+        let argIndex = 0;
+        for (const param of func.params) {
+            if (argIndex < expr.args.length) {
+                funcEnv.set(param.name, this.evaluate(expr.args[argIndex]));
+            }
+            else if (param.defaultValue) {
+                funcEnv.set(param.name, this.evaluate(param.defaultValue));
+            }
+            argIndex++;
         }
-        this.envStack.push(newEnv);
+        if (func.restParam) {
+            const restArgs = expr.args.slice(argIndex).map(arg => this.evaluate(arg));
+            funcEnv.set(func.restParam, values_1.Value.array(restArgs));
+        }
+        this.envStack.push(funcEnv);
         try {
             for (const stmt of func.body) {
                 this.executeStatement(stmt);
@@ -378,6 +423,86 @@ class Interpreter {
             elements.push(values_1.Value.number(i));
         }
         return values_1.Value.array(elements);
+    }
+    evaluateTernary(expr) {
+        const condition = this.evaluate(expr.condition);
+        if (condition.isTruthy()) {
+            return this.evaluate(expr.thenBranch);
+        }
+        else {
+            return this.evaluate(expr.elseBranch);
+        }
+    }
+    evaluateNilCoalescing(expr) {
+        const left = this.evaluate(expr.left);
+        if (left.type !== values_1.ValueType.NULL) {
+            return left;
+        }
+        return this.evaluate(expr.right);
+    }
+    evaluateOptionalChain(expr) {
+        const object = this.evaluate(expr.object);
+        if (object.type === values_1.ValueType.NULL) {
+            return values_1.Value.null();
+        }
+        if (object.type === values_1.ValueType.OBJECT) {
+            if (expr.property in object.value) {
+                return object.value[expr.property];
+            }
+            else {
+                return values_1.Value.null();
+            }
+        }
+        throw new RuntimeError_1.RuntimeError('Optional chaining only on objects');
+    }
+    executeTry(stmt) {
+        try {
+            for (const s of stmt.tryBody) {
+                this.executeStatement(s);
+            }
+        }
+        catch (e) {
+            if (stmt.catchBody && stmt.catchParam) {
+                const catchEnv = new Map(this.currentEnv());
+                catchEnv.set(stmt.catchParam, values_1.Value.string(e instanceof Error ? e.message : 'Unknown error'));
+                this.envStack.push(catchEnv);
+                try {
+                    for (const s of stmt.catchBody) {
+                        this.executeStatement(s);
+                    }
+                }
+                finally {
+                    this.envStack.pop();
+                }
+            }
+            else {
+                throw e;
+            }
+        }
+        finally {
+            if (stmt.finallyBody) {
+                for (const s of stmt.finallyBody) {
+                    this.executeStatement(s);
+                }
+            }
+        }
+    }
+    executeSwitch(stmt) {
+        const value = this.evaluate(stmt.expression);
+        for (const caseItem of stmt.cases) {
+            const caseValue = this.evaluate(caseItem.value);
+            if (value.toString() === caseValue.toString()) {
+                for (const s of caseItem.body) {
+                    this.executeStatement(s);
+                }
+                return;
+            }
+        }
+        if (stmt.defaultCase) {
+            for (const s of stmt.defaultCase) {
+                this.executeStatement(s);
+            }
+        }
     }
 }
 exports.Interpreter = Interpreter;
