@@ -10,7 +10,7 @@ export interface PackageManifest {
 export class PackageManager {
   private manifestPath = 'kexra.json';
   private modulesDir = 'kex_modules';
-  private registryDir = '.kexra-registry/packages';
+  private registryUrl = 'http://51.75.118.170:20246';
 
   init(): void {
     const fs = require('fs');
@@ -27,33 +27,64 @@ export class PackageManager {
     console.log('Created kexra.json');
   }
 
-  install(pkg?: string): void {
-    const fs = require('fs');
-    const path = require('path');
-
+  async install(pkg?: string): Promise<void> {
     if (!pkg) {
       // Install dependencies from manifest
       const manifest = this.readManifest();
       for (const [name, version] of Object.entries(manifest.dependencies || {})) {
-        this.installPackage(name, version as string);
+        await this.installPackage(name, version as string);
       }
       return;
     }
 
     // Parse pkg@version
     const [name, version] = pkg.split('@');
-    this.installPackage(name, version || 'latest');
+    await this.installPackage(name, version || 'latest');
   }
 
-  private installPackage(name: string, version: string): void {
+  private async installPackage(name: string, version: string): Promise<void> {
     const fs = require('fs');
     const path = require('path');
+    const fetch = require('node-fetch');
 
     const pkgDir = path.join(this.modulesDir, name);
     if (fs.existsSync(pkgDir)) {
       console.log(`${name} already installed`);
       return;
     }
+
+    try {
+      // Get package info
+      const pkgResponse = await fetch(`${this.registryUrl}/packages/${name}`);
+      if (!pkgResponse.ok) {
+        console.error(`Package ${name} not found in registry`);
+        return;
+      }
+      const pkgInfo = await pkgResponse.json();
+
+      // For now, assume latest version
+      const selectedVersion = version === 'latest' ? pkgInfo.version : version;
+
+      // Download tarball (simplified, assume direct file)
+      const tarballUrl = `${this.registryUrl}/packages/${name}/-/${name}-${selectedVersion}.tgz`;
+      const tarballResponse = await fetch(tarballUrl);
+      if (!tarballResponse.ok) {
+        console.error(`Failed to download ${name}@${selectedVersion}`);
+        return;
+      }
+
+      // Extract (simplified, assume JSON for now)
+      const tarballData = await tarballResponse.json(); // Mock
+
+      fs.mkdirSync(pkgDir, { recursive: true });
+      fs.writeFileSync(path.join(pkgDir, 'kexra.json'), JSON.stringify(tarballData.manifest));
+      fs.writeFileSync(path.join(pkgDir, 'index.kx'), tarballData.code);
+
+      console.log(`Installed ${name}@${selectedVersion}`);
+    } catch (error) {
+      console.error(`Error installing ${name}: ${(error as Error).message}`);
+    }
+  }
 
     // Check registry
     const regPkgDir = path.join(this.registryDir, name);
