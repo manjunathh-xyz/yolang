@@ -7,8 +7,8 @@ function validateSemver(version) {
 }
 
 function validatePackages() {
-  const packagesDir = path.join(__dirname, '..', '..', 'packages');
-  const sitePackagesDir = path.join(__dirname, '..', '..', 'site', 'packages');
+  const packagesDir = path.join(__dirname, '..', '..', '..', 'packages');
+  const sitePackagesDir = path.join(__dirname, '..', '..', '..', 'site', 'packages');
 
   if (!fs.existsSync(packagesDir)) {
     console.error('No packages directory found');
