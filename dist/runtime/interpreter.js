@@ -1,9 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Interpreter = void 0;
+const RuntimeError_1 = require("../errors/RuntimeError");
 class Interpreter {
     constructor() {
         this.env = new Map();
+    }
+    getEnv() {
+        return Object.fromEntries(this.env);
     }
     interpret(program) {
         for (const stmt of program) {
@@ -53,7 +57,7 @@ class Interpreter {
             case 'variable':
                 const varExpr = expr;
                 if (!this.env.has(varExpr.name)) {
-                    throw new Error(`Undefined variable '${varExpr.name}'`);
+                    throw new RuntimeError_1.RuntimeError(`Undefined variable '${varExpr.name}'`, undefined, undefined, undefined, 'Make sure the variable is defined before use');
                 }
                 return this.env.get(varExpr.name);
             case 'binary':
@@ -69,7 +73,7 @@ class Interpreter {
                     return left + right;
                 if (typeof left === 'string' || typeof right === 'string')
                     return String(left) + String(right);
-                throw new Error('Invalid operands for +');
+                throw new RuntimeError_1.RuntimeError('Invalid operands for +');
             case '-':
                 this.checkNumbers(left, right, '-');
                 return left - right;
@@ -103,11 +107,11 @@ class Interpreter {
         const val = this.evaluate(expr);
         if (typeof val === 'boolean')
             return val;
-        throw new Error('Condition must evaluate to boolean');
+        throw new RuntimeError_1.RuntimeError('Condition must evaluate to boolean');
     }
     checkNumbers(left, right, op) {
         if (typeof left !== 'number' || typeof right !== 'number') {
-            throw new Error(`Operator '${op}' requires number operands`);
+            throw new RuntimeError_1.RuntimeError(`Operator '${op}' requires number operands`);
         }
     }
 }

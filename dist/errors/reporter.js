@@ -2,25 +2,29 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.reportError = void 0;
 function reportError(error, source) {
-    const message = error.message;
-    const match = message.match(/at line (\d+), column (\d+)/);
-    if (!match) {
-        console.error(`❌ Error: ${message}`);
-        return;
+    console.error(`❌ ${error.name}`);
+    if (error.file) {
+        console.error(`File: ${error.file}`);
     }
-    const lineNum = parseInt(match[1]);
-    const col = parseInt(match[2]);
-    const lines = source.split('\n');
-    const line = lines[lineNum - 1];
-    console.error(`❌ Error on line ${lineNum}`);
-    console.error(`  ${line}`);
-    console.error(`  ${' '.repeat(col - 1)}^`);
-    // Add hints if possible
-    if (message.includes('Expected =')) {
-        console.error('Hint: Use "=" for assignment, not "=="');
+    else if (!error.file) {
+        console.error(`(REPL)`);
     }
-    else if (message.includes('Undefined variable')) {
-        console.error('Hint: Make sure the variable is defined before use');
+    if (error.line !== undefined) {
+        console.error(`Line: ${error.line}`);
+        console.error('');
+        if (source) {
+            const lines = source.split('\n');
+            if (error.line - 1 < lines.length) {
+                const lineContent = lines[error.line - 1];
+                console.error(`  ${lineContent}`);
+                if (error.column !== undefined) {
+                    console.error(`  ${' '.repeat(error.column - 1)}^`);
+                }
+            }
+        }
+    }
+    if (error.hint) {
+        console.error(`Hint: ${error.hint}`);
     }
 }
 exports.reportError = reportError;

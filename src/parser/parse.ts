@@ -1,11 +1,14 @@
 import { Token, TokenType, Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression } from '../types';
+import { SyntaxError } from '../errors/SyntaxError';
 
 export class Parser {
   private tokens: Token[];
   private current = 0;
+  private filePath?: string;
 
-  constructor(tokens: Token[]) {
+  constructor(tokens: Token[], filePath?: string) {
     this.tokens = tokens;
+    this.filePath = filePath;
   }
 
   parse(): Program {
@@ -51,7 +54,7 @@ export class Parser {
      const name = this.consume('IDENT', 'Expected variable name').value;
      const opToken = this.consume('OPERATOR', 'Expected =');
      if (opToken.value !== '=') {
-       throw this.error(opToken, 'Expected =');
+       throw new SyntaxError('Expected =', this.filePath, opToken.line, opToken.column, 'Use "=" for assignment, not "=="');
      }
      const expr = this.parseExpression();
      this.expectNewline();
@@ -204,12 +207,12 @@ export class Parser {
     if (!this.isAtEnd() && this.peek().type === 'NEWLINE') this.advance();
   }
 
-  private error(token: Token, message: string): Error {
-    return new Error(`${message} at line ${token.line}, column ${token.column}`);
+  private error(token: Token, message: string): never {
+    throw new SyntaxError(message, this.filePath, token.line, token.column);
   }
 }
 
-export function parse(tokens: Token[]): Program {
-  const parser = new Parser(tokens);
+export function parse(tokens: Token[], filePath?: string): Program {
+  const parser = new Parser(tokens, filePath);
   return parser.parse();
 }

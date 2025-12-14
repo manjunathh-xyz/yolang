@@ -2,7 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.tokenize = void 0;
 const keywords_1 = require("../keywords");
-function tokenize(source) {
+const SyntaxError_1 = require("../errors/SyntaxError");
+function tokenize(source, filePath) {
     const tokens = [];
     let pos = 0;
     let line = 1;
@@ -37,7 +38,7 @@ function tokenize(source) {
                 column++;
             }
             if (pos >= source.length) {
-                throw new Error(`Unterminated string at line ${line}, column ${column}`);
+                throw new SyntaxError_1.SyntaxError(`Unterminated string`, filePath, line, column);
             }
             pos++;
             column++;
@@ -107,7 +108,7 @@ function tokenize(source) {
             column++;
             continue;
         }
-        throw new Error(`Unexpected character '${char}' at line ${line}, column ${column}`);
+        throw new SyntaxError_1.SyntaxError(`Unexpected character '${char}'`, filePath, line, column);
     }
     tokens.push({ type: 'EOF', value: '', line, column });
     return tokens;

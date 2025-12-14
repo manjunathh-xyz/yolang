@@ -35,6 +35,7 @@ loop x < 15 {
 2. Install dependencies: `npm install`
 3. Build: `npm run build`
 4. Run a file: `yo run examples/hello.yo`
+5. Start REPL: `yo repl`
 
 ## Features
 
@@ -50,12 +51,39 @@ loop x < 15 {
 ## CLI Usage
 
 ```bash
-yo run <file.yo>
+yo run <file.yo>     # Run a Yolang file
+yo repl              # Start interactive REPL
+yo version           # Show version
+yo help              # Show help
+```
+
+## REPL
+
+The interactive REPL allows you to experiment with Yolang code in real-time.
+
+```bash
+yo repl
+```
+
+Built-in commands:
+- `exit` - Quit REPL
+- `help` - Show commands
+- `vars` - Show current variables
+- `clear` - Clear terminal
+
+Multi-line support for blocks:
+
+```yo
+yo> check x > 5 {
+...   say "big"
+... } else {
+...   say "small"
+... }
 ```
 
 ## Roadmap
 
-- REPL for interactive coding
-- Functions and more data types
-- Better error diagnostics
-- Web playground
+- Functions
+- Arrays & objects
+- Better diagnostics
+- Playground website

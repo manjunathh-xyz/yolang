@@ -1,7 +1,8 @@
 import { Token } from '../types';
 import { keywords } from '../keywords';
+import { SyntaxError } from '../errors/SyntaxError';
 
-export function tokenize(source: string): Token[] {
+export function tokenize(source: string, filePath?: string): Token[] {
   const tokens: Token[] = [];
   let pos = 0;
   let line = 1;
@@ -41,8 +42,8 @@ export function tokenize(source: string): Token[] {
         column++;
       }
       if (pos >= source.length) {
-        throw new Error(`Unterminated string at line ${line}, column ${column}`);
-      }
+         throw new SyntaxError(`Unterminated string`, filePath, line, column);
+       }
       pos++;
       column++;
       tokens.push({ type: 'STRING', value, line, column: column - value.length - 2 });
@@ -121,7 +122,7 @@ export function tokenize(source: string): Token[] {
       continue;
     }
 
-    throw new Error(`Unexpected character '${char}' at line ${line}, column ${column}`);
+    throw new SyntaxError(`Unexpected character '${char}'`, filePath, line, column);
   }
 
   tokens.push({ type: 'EOF', value: '', line, column });

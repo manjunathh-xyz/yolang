@@ -1,10 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.parse = exports.Parser = void 0;
+const SyntaxError_1 = require("../errors/SyntaxError");
 class Parser {
-    constructor(tokens) {
+    constructor(tokens, filePath) {
         this.current = 0;
         this.tokens = tokens;
+        this.filePath = filePath;
     }
     parse() {
         const statements = [];
@@ -46,7 +48,7 @@ class Parser {
         const name = this.consume('IDENT', 'Expected variable name').value;
         const opToken = this.consume('OPERATOR', 'Expected =');
         if (opToken.value !== '=') {
-            throw this.error(opToken, 'Expected =');
+            throw new SyntaxError_1.SyntaxError('Expected =', this.filePath, opToken.line, opToken.column, 'Use "=" for assignment, not "=="');
         }
         const expr = this.parseExpression();
         this.expectNewline();
@@ -187,12 +189,12 @@ class Parser {
             this.advance();
     }
     error(token, message) {
-        return new Error(`${message} at line ${token.line}, column ${token.column}`);
+        throw new SyntaxError_1.SyntaxError(message, this.filePath, token.line, token.column);
     }
 }
 exports.Parser = Parser;
-function parse(tokens) {
-    const parser = new Parser(tokens);
+function parse(tokens, filePath) {
+    const parser = new Parser(tokens, filePath);
     return parser.parse();
 }
 exports.parse = parse;

@@ -1,7 +1,12 @@
 import { Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression } from '../types';
+import { RuntimeError } from '../errors/RuntimeError';
 
 export class Interpreter {
   private env: Map<string, any> = new Map();
+
+  getEnv(): Record<string, any> {
+    return Object.fromEntries(this.env);
+  }
 
   interpret(program: Program) {
     for (const stmt of program) {
@@ -52,8 +57,8 @@ export class Interpreter {
       case 'variable':
         const varExpr = expr as VariableExpression;
         if (!this.env.has(varExpr.name)) {
-          throw new Error(`Undefined variable '${varExpr.name}'`);
-        }
+           throw new RuntimeError(`Undefined variable '${varExpr.name}'`, undefined, undefined, undefined, 'Make sure the variable is defined before use');
+         }
         return this.env.get(varExpr.name);
       case 'binary':
         return this.evaluateBinary(expr as BinaryExpression);
@@ -65,9 +70,9 @@ export class Interpreter {
     const right = this.evaluate(expr.right);
     switch (expr.operator) {
       case '+':
-        if (typeof left === 'number' && typeof right === 'number') return left + right;
-        if (typeof left === 'string' || typeof right === 'string') return String(left) + String(right);
-        throw new Error('Invalid operands for +');
+         if (typeof left === 'number' && typeof right === 'number') return left + right;
+         if (typeof left === 'string' || typeof right === 'string') return String(left) + String(right);
+         throw new RuntimeError('Invalid operands for +');
       case '-':
         this.checkNumbers(left, right, '-');
         return left - right;
@@ -101,12 +106,12 @@ export class Interpreter {
   private evaluateToBoolean(expr: Expression): boolean {
     const val = this.evaluate(expr);
     if (typeof val === 'boolean') return val;
-    throw new Error('Condition must evaluate to boolean');
+     throw new RuntimeError('Condition must evaluate to boolean');
   }
 
   private checkNumbers(left: any, right: any, op: string) {
-    if (typeof left !== 'number' || typeof right !== 'number') {
-      throw new Error(`Operator '${op}' requires number operands`);
-    }
-  }
+     if (typeof left !== 'number' || typeof right !== 'number') {
+       throw new RuntimeError(`Operator '${op}' requires number operands`);
+     }
+   }
 }
