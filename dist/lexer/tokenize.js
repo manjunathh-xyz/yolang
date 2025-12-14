@@ -47,7 +47,7 @@ function tokenize(source, filePath) {
         }
         if (/\d/.test(char)) {
             let value = '';
-            while (pos < source.length && /\d/.test(source[pos])) {
+            while (pos < source.length && /\d|\./.test(source[pos])) {
                 value += source[pos];
                 pos++;
                 column++;

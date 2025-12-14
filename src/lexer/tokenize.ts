@@ -42,8 +42,8 @@ export function tokenize(source: string, filePath?: string): Token[] {
         column++;
       }
       if (pos >= source.length) {
-         throw new SyntaxError(`Unterminated string`, filePath, line, column);
-       }
+        throw new SyntaxError(`Unterminated string`, filePath, line, column);
+      }
       pos++;
       column++;
       tokens.push({ type: 'STRING', value, line, column: column - value.length - 2 });
@@ -52,7 +52,7 @@ export function tokenize(source: string, filePath?: string): Token[] {
 
     if (/\d/.test(char)) {
       let value = '';
-      while (pos < source.length && /\d/.test(source[pos])) {
+      while (pos < source.length && /\d|\./.test(source[pos])) {
         value += source[pos];
         pos++;
         column++;
@@ -108,7 +108,7 @@ export function tokenize(source: string, filePath?: string): Token[] {
       continue;
     }
 
-    if (char === '?' ) {
+    if (char === '?') {
       tokens.push({ type: 'OPERATOR', value: '?', line, column });
       pos++;
       column++;

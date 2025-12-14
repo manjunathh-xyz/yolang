@@ -31,7 +31,8 @@ export interface Expression {
     | 'ternary'
     | 'nil-coalescing'
     | 'optional-chain'
-    | 'await';
+    | 'await'
+    | 'unary';
 }
 
 export interface LiteralExpression extends Expression {
@@ -125,6 +126,12 @@ export interface OptionalChainExpression extends Expression {
 export interface AwaitExpression extends Expression {
   type: 'await';
   expression: Expression;
+}
+
+export interface UnaryExpression extends Expression {
+  type: 'unary';
+  operator: string;
+  right: Expression;
 }
 
 export interface Statement {

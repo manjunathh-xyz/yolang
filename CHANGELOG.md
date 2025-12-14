@@ -8,22 +8,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+
 - Removed full website, documentation, and IDE
 - Introduced a minimal landing page
 - Simplified project public surface
 
+## [0.9.1] - 2025-12-14
+
+### Added
+
+- Built-in math module
+- Package authoring guide
+
+### Notes
+
+- No breaking changes
+
 ## [0.5.1] - 2025-12-14
 
 ### Fixed
+
 - Version reporting in CLI commands
 - Package.json reading for published packages
 
 ### Notes
+
 - Patch release for version display fix
 
 ## [0.5.0] - 2025-12-14
 
 ### Added
+
 - **Arrays**: Ordered collections with `[]` syntax and zero-based indexing
 - **Objects**: Key-value data structures with `{}` syntax and dot/bracket access
 - **Indexing**: Support for `array[index]` and `object["key"]` syntax
@@ -31,24 +46,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Enhanced Type System**: Unified `Value` type for runtime type safety
 
 ### Changed
+
 - **Runtime Architecture**: Complete rewrite for complex data types
 - **Parser Extensions**: Added parsing for arrays, objects, and indexing
 - **Error Handling**: Improved error messages with bounds checking
 
 ### Notes
+
 - Major language expansion from simple expressions to data structures
 - Foundation for real programming with collections and objects
 
 ## [0.4.2] - 2025-12-14
 
 ### Changed
+
 - Rebuilt website and documentation from scratch
 - Introduced docs-first structure inspired by modern OSS projects
 
 ### Removed
+
 - Old website and documentation structure
 
 ### Notes
+
 - No language or runtime changes
 - Documentation-only release
 
@@ -98,12 +118,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.3.0] - 2025-12-14
 
 ### Added
+
 - Official Kexra website
 - GitHub Pages hosting
 - Language overview & examples
 - Credits and contributor visibility
 
 ### Changed
+
 - Project discoverability
 - Documentation clarity
 - Public project identity
@@ -111,6 +133,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.2.1] - 2025-12-14
 
 ### Added
+
 - Project metadata and documentation files
 - Credits and acknowledgements
 - CHANGELOG.md
@@ -119,11 +142,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CREDITS.md
 
 ### Changed
+
 - README.md updated with credits section
 
 ## [0.2.0] - 2025-12-14
 
 ### Added
+
 - Interactive REPL (`kex repl`)
 - Improved CLI commands (`run`, `help`, `version`)
 - Unified error handling system
@@ -131,12 +156,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Built-in REPL commands
 
 ### Changed
+
 - CLI output styling
 - Error reporting format
 
 ## [0.1.0] - 2025-12-14
 
 ### Added
+
 - Initial language implementation
 - File execution support
 - Basic syntax: variables, math, conditionals, loops

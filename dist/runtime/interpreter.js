@@ -27,6 +27,9 @@ class Interpreter {
         }
         return result;
     }
+    loadModule(name, exports) {
+        this.modules.set(name, exports);
+    }
     valueToJS(value) {
         switch (value.type) {
             case values_1.ValueType.NUMBER:
@@ -207,6 +210,8 @@ class Interpreter {
                 return this.evaluateOptionalChain(expr);
             case 'await':
                 return this.evaluateAwait(expr);
+            case 'unary':
+                return this.evaluateUnary(expr);
         }
     }
     evaluateIndex(expr) {
@@ -244,7 +249,13 @@ class Interpreter {
         }
         const func = this.functions.get(expr.name);
         if (!func) {
-            throw new RuntimeError_1.RuntimeError(`Undefined function '${expr.name}'`, undefined, undefined, undefined, 'Make sure the function is defined before use');
+            const envVal = this.currentEnv().get(expr.name);
+            if (envVal && envVal.type === values_1.ValueType.FUNCTION && typeof envVal.value === 'function') {
+                const fn = envVal.value;
+                const args = expr.args.map((arg) => this.evaluate(arg));
+                return fn(args);
+            }
+            throw new RuntimeError_1.RuntimeError(`Undefined function '${expr.name}'`, undefined, undefined, undefined, undefined, this.callStack.getStackTrace());
         }
         // Handle default and rest params
         const expectedArgs = func.params.filter((p) => !p.defaultValue).length;
@@ -480,6 +491,18 @@ class Interpreter {
         // For now, just evaluate the expression
         // TODO: implement async runtime
         return this.evaluate(expr.expression);
+    }
+    evaluateUnary(expr) {
+        const right = this.evaluate(expr.right);
+        switch (expr.operator) {
+            case '-':
+                if (right.type !== values_1.ValueType.NUMBER) {
+                    throw new RuntimeError_1.RuntimeError('Unary - requires number');
+                }
+                return values_1.Value.number(-right.value);
+            default:
+                throw new RuntimeError_1.RuntimeError(`Unknown unary operator '${expr.operator}'`);
+        }
     }
     executeTry(stmt) {
         try {

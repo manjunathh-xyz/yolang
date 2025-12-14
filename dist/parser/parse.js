@@ -228,13 +228,17 @@ class Parser {
     parseUse() {
         this.advance(); // 'use'
         const module = this.expectIdentifier('Expected module name after use').value;
+        this.skipNewlines();
         this.expect('BLOCK_START', 'Expected { after module name');
+        this.skipNewlines();
         const imports = [];
         while (!this.check('BLOCK_END')) {
             const ident = this.expectIdentifier('Expected identifier in import list');
             imports.push(ident.value);
+            this.skipNewlines();
             if (!this.check('BLOCK_END')) {
                 this.expect('OPERATOR', ',', 'Expected , or }');
+                this.skipNewlines();
             }
         }
         this.advance(); // consume }
@@ -333,6 +337,11 @@ class Parser {
             const operator = 'not';
             const right = this.parseUnary();
             return { type: 'logical', operator, right };
+        }
+        if (this.match('OPERATOR', '-')) {
+            const operator = '-';
+            const right = this.parseUnary();
+            return { type: 'unary', operator, right };
         }
         if (this.match('KEYWORD', 'await')) {
             const expression = this.parseUnary();
@@ -480,6 +489,11 @@ class Parser {
             }
         }
         throw this.error(this.peek(), message || valueOrMessage);
+    }
+    skipNewlines() {
+        while (!this.isAtEnd() && this.peek().type === 'NEWLINE') {
+            this.advance();
+        }
     }
     expectIdentifier(message) {
         if (this.peek().type === 'IDENT')

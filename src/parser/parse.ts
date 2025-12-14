@@ -33,6 +33,7 @@ import {
   NilCoalescingExpression,
   OptionalChainExpression,
   AwaitExpression,
+  UnaryExpression,
 } from '../types';
 import { SyntaxError } from '../errors/SyntaxError';
 
@@ -285,13 +286,17 @@ export class Parser {
   private parseUse(): UseStatement {
     this.advance(); // 'use'
     const module = this.expectIdentifier('Expected module name after use').value;
+    this.skipNewlines();
     this.expect('BLOCK_START', 'Expected { after module name');
+    this.skipNewlines();
     const imports: string[] = [];
     while (!this.check('BLOCK_END')) {
       const ident = this.expectIdentifier('Expected identifier in import list');
       imports.push(ident.value);
+      this.skipNewlines();
       if (!this.check('BLOCK_END')) {
         this.expect('OPERATOR', ',', 'Expected , or }');
+        this.skipNewlines();
       }
     }
     this.advance(); // consume }
@@ -401,6 +406,11 @@ export class Parser {
       const operator = 'not';
       const right = this.parseUnary();
       return { type: 'logical', operator, right } as LogicalExpression;
+    }
+    if (this.match('OPERATOR', '-')) {
+      const operator = '-';
+      const right = this.parseUnary();
+      return { type: 'unary', operator, right } as UnaryExpression;
     }
     if (this.match('KEYWORD', 'await')) {
       const expression = this.parseUnary();
@@ -559,6 +569,12 @@ export class Parser {
       }
     }
     throw this.error(this.peek(), message || valueOrMessage);
+  }
+
+  private skipNewlines(): void {
+    while (!this.isAtEnd() && this.peek().type === 'NEWLINE') {
+      this.advance();
+    }
   }
 
   private expectIdentifier(message: string): Token {

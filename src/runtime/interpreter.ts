@@ -31,6 +31,7 @@ import {
   NilCoalescingExpression,
   OptionalChainExpression,
   AwaitExpression,
+  UnaryExpression,
 } from '../types';
 import { RuntimeError } from '../errors/RuntimeError';
 import { Value, ValueType, RuntimeFn } from './values';
@@ -71,6 +72,10 @@ export class Interpreter {
       result[key] = this.valueToJS(value);
     }
     return result;
+  }
+
+  loadModule(name: string, exports: Map<string, Value>): void {
+    this.modules.set(name, exports);
   }
 
   private valueToJS(value: Value): any {
@@ -267,6 +272,8 @@ export class Interpreter {
         return this.evaluateOptionalChain(expr as OptionalChainExpression);
       case 'await':
         return this.evaluateAwait(expr as AwaitExpression);
+      case 'unary':
+        return this.evaluateUnary(expr as UnaryExpression);
     }
   }
 
@@ -314,12 +321,19 @@ export class Interpreter {
 
     const func = this.functions.get(expr.name);
     if (!func) {
+      const envVal = this.currentEnv().get(expr.name);
+      if (envVal && envVal.type === ValueType.FUNCTION && typeof envVal.value === 'function') {
+        const fn = envVal.value as RuntimeFn;
+        const args = expr.args.map((arg) => this.evaluate(arg));
+        return fn(args);
+      }
       throw new RuntimeError(
         `Undefined function '${expr.name}'`,
         undefined,
         undefined,
         undefined,
-        'Make sure the function is defined before use'
+        undefined,
+        this.callStack.getStackTrace()
       );
     }
     // Handle default and rest params
@@ -562,6 +576,19 @@ export class Interpreter {
     // For now, just evaluate the expression
     // TODO: implement async runtime
     return this.evaluate(expr.expression);
+  }
+
+  private evaluateUnary(expr: UnaryExpression): Value {
+    const right = this.evaluate(expr.right);
+    switch (expr.operator) {
+      case '-':
+        if (right.type !== ValueType.NUMBER) {
+          throw new RuntimeError('Unary - requires number');
+        }
+        return Value.number(-right.value);
+      default:
+        throw new RuntimeError(`Unknown unary operator '${expr.operator}'`);
+    }
   }
 
   private executeTry(stmt: TryStatement): void {

@@ -1,0 +1,9 @@
+use math { pi, sqrt, pow, abs, round, floor, ceil, random }
+say pi
+say sqrt(4)
+say pow(2, 3)
+say abs(-5)
+say round(3.7)
+say floor(3.7)
+say ceil(3.2)
+say random()
