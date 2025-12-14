@@ -1,4 +1,4 @@
-import { Program, Statement, SayStatement, SetStatement, ConstStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, TryStatement, SwitchStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression, TernaryExpression, NilCoalescingExpression, OptionalChainExpression } from '../types';
+import { Program, Statement, SayStatement, SetStatement, ConstStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, TryStatement, SwitchStatement, ImportStatement, ExportStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression, TernaryExpression, NilCoalescingExpression, OptionalChainExpression } from '../types';
 import { RuntimeError } from '../errors/RuntimeError';
 import { Value, ValueType, RuntimeFn } from './values';
 import { CallStack } from './stack';
@@ -16,6 +16,7 @@ export class Interpreter {
   private envStack: Map<string, Value>[] = [new Map()];
   private consts: Set<string> = new Set();
   private functions: Map<string, FunctionDeclaration> = new Map();
+  private modules: Map<string, Map<string, Value>> = new Map();
   private stepCount = 0;
 
   constructor(
@@ -152,6 +153,14 @@ export class Interpreter {
        case 'switch':
          const switchStmt = stmt as SwitchStatement;
          this.executeSwitch(switchStmt);
+         break;
+       case 'import':
+         const importStmt = stmt as ImportStatement;
+         this.executeImport(importStmt);
+         break;
+       case 'export':
+         const exportStmt = stmt as ExportStatement;
+         this.executeExport(exportStmt);
          break;
      }
   }
@@ -512,6 +521,41 @@ export class Interpreter {
     if (stmt.defaultCase) {
       for (const s of stmt.defaultCase) {
         this.executeStatement(s);
+      }
+    }
+  }
+
+  private executeImport(stmt: ImportStatement): void {
+    // For now, assume modules are loaded externally
+    // In full implementation, this would load the module file
+    const moduleExports = this.modules.get(stmt.module);
+    if (!moduleExports) {
+      throw new RuntimeError(`Module '${stmt.module}' not found`);
+    }
+    for (const name of stmt.names) {
+      if (moduleExports.has(name)) {
+        this.currentEnv().set(name, moduleExports.get(name)!);
+      } else {
+        throw new RuntimeError(`Export '${name}' not found in module '${stmt.module}'`);
+      }
+    }
+  }
+
+  private executeExport(stmt: ExportStatement): void {
+    // For now, add to current module (assuming file-based)
+    // In full implementation, track per-file exports
+    if (!this.modules.has('current')) {
+      this.modules.set('current', new Map());
+    }
+    const currentModule = this.modules.get('current')!;
+    if (stmt.expression) {
+      currentModule.set(stmt.name, this.evaluate(stmt.expression));
+    } else {
+      // Export existing variable
+      if (this.currentEnv().has(stmt.name)) {
+        currentModule.set(stmt.name, this.currentEnv().get(stmt.name)!);
+      } else {
+        throw new RuntimeError(`Cannot export undefined variable '${stmt.name}'`);
       }
     }
   }

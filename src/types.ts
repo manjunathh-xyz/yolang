@@ -109,7 +109,7 @@ export interface OptionalChainExpression extends Expression {
 }
 
 export interface Statement {
-  type: 'say' | 'set' | 'const' | 'check' | 'loop' | 'for' | 'function' | 'return' | 'break' | 'continue' | 'try' | 'switch';
+  type: 'say' | 'set' | 'const' | 'check' | 'loop' | 'for' | 'function' | 'return' | 'break' | 'continue' | 'try' | 'switch' | 'import' | 'export';
 }
 
 export interface SayStatement extends Statement {
@@ -183,6 +183,18 @@ export interface SwitchStatement extends Statement {
   expression: Expression;
   cases: { value: Expression; body: Statement[] }[];
   defaultCase?: Statement[];
+}
+
+export interface ImportStatement extends Statement {
+  type: 'import';
+  names: string[];
+  module: string;
+}
+
+export interface ExportStatement extends Statement {
+  type: 'export';
+  name: string;
+  expression?: Expression;
 }
 
 export type Program = Statement[];

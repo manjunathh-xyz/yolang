@@ -9,7 +9,10 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/cli.js",
-    "test": "npm run build && node dist/cli.js run examples/hello.kx && node dist/cli.js run examples/test.kx"
+    "test": "npm run build && node dist/cli.js run examples/hello.kx && node dist/cli.js run examples/test.kx",
+    "lint": "eslint src/**/*.ts studio/src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts studio/src/**/*.ts --fix",
+    "format": "prettier --write src/**/*.ts studio/src/**/*.ts"
   },
   "keywords": ["language", "scripting", "toy", "beginner"],
    "author": "manjunathh-xyz",
@@ -18,6 +21,10 @@
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
-    "vite": "^5.0.0"
+    "vite": "^5.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "prettier": "^3.0.0"
   }
 }

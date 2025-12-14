@@ -1,4 +1,4 @@
-import { Token, TokenType, Program, Statement, SayStatement, SetStatement, ConstStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, TryStatement, SwitchStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression, TernaryExpression, NilCoalescingExpression, OptionalChainExpression } from '../types';
+import { Token, TokenType, Program, Statement, SayStatement, SetStatement, ConstStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, TryStatement, SwitchStatement, ImportStatement, ExportStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression, TernaryExpression, NilCoalescingExpression, OptionalChainExpression } from '../types';
 import { SyntaxError } from '../errors/SyntaxError';
 
 export class Parser {
@@ -51,6 +51,10 @@ export class Parser {
           return this.parseTry();
         case 'switch':
           return this.parseSwitch();
+        case 'import':
+          return this.parseImport();
+        case 'export':
+          return this.parseExport();
         default:
           throw this.error(token, `Unexpected keyword '${token.value}'`);
       }
@@ -206,6 +210,42 @@ export class Parser {
     }
     this.consume('BLOCK_END', 'Expected } after switch');
     return { type: 'switch', expression, cases, defaultCase };
+  }
+
+  private parseImport(): ImportStatement {
+    this.advance(); // 'import'
+    this.consume('OPERATOR', 'Expected { after import', '{');
+    const names: string[] = [];
+    if (!this.check('OPERATOR', '}')) {
+      do {
+        names.push(this.consume('IDENT', 'Expected identifier').value);
+      } while (this.match('OPERATOR', ','));
+    }
+    this.consume('OPERATOR', 'Expected }', '}');
+    this.consume('KEYWORD', 'Expected from', 'from');
+    const module = this.consume('STRING', 'Expected module path').value;
+    this.expectNewline();
+    return { type: 'import', names, module };
+  }
+
+  private parseExport(): ExportStatement {
+    this.advance(); // 'export'
+    if (this.match('KEYWORD', 'const')) {
+      const name = this.consume('IDENT', 'Expected variable name').value;
+      this.consume('OPERATOR', 'Expected =', '=');
+      const expression = this.parseExpression();
+      this.expectNewline();
+      return { type: 'export', name, expression };
+    } else if (this.match('KEYWORD', 'fn')) {
+      const name = this.consume('IDENT', 'Expected function name').value;
+      // Parse function as usual
+      const func = this.parseFunction();
+      return { type: 'export', name, expression: { type: 'call', name: 'fn', args: [] } as any }; // Placeholder
+    } else {
+      const name = this.consume('IDENT', 'Expected identifier').value;
+      this.expectNewline();
+      return { type: 'export', name };
+    }
   }
 
   private parseBlock(): Statement[] {
