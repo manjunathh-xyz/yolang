@@ -1,6 +1,6 @@
 {
   "name": "kexra",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "A playful, beginner-friendly scripting language",
   "main": "dist/cli.js",
   "bin": {
@@ -14,10 +14,17 @@
     "lint:fix": "eslint src/**/*.ts --fix",
     "format": "prettier --write src/**/*.ts"
   },
-  "keywords": ["language", "scripting", "toy", "beginner"],
-   "author": "manjunathh-xyz",
-   "contributors": ["ramkrishna-xyz"],
-   "license": "MIT",
+  "keywords": [
+    "language",
+    "scripting",
+    "toy",
+    "beginner"
+  ],
+  "author": "manjunathh-xyz",
+  "contributors": [
+    "ramkrishna-xyz"
+  ],
+  "license": "MIT",
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0",

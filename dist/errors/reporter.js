@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.reportError = void 0;
+exports.reportError = reportError;
 function reportError(error, source) {
     console.error(`❌ ${error.name}`);
     if (error.file) {
@@ -27,4 +27,3 @@ function reportError(error, source) {
         console.error(`Hint: ${error.hint}`);
     }
 }
-exports.reportError = reportError;

@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.parse = exports.Parser = void 0;
+exports.Parser = void 0;
+exports.parse = parse;
 const SyntaxError_1 = require("../errors/SyntaxError");
 class Parser {
     constructor(tokens, filePath) {
@@ -47,6 +48,10 @@ class Parser {
                     return this.parseTry();
                 case 'switch':
                     return this.parseSwitch();
+                case 'import':
+                    return this.parseImport();
+                case 'export':
+                    return this.parseExport();
                 default:
                     throw this.error(token, `Unexpected keyword '${token.value}'`);
             }
@@ -192,6 +197,42 @@ class Parser {
         }
         this.consume('BLOCK_END', 'Expected } after switch');
         return { type: 'switch', expression, cases, defaultCase };
+    }
+    parseImport() {
+        this.advance(); // 'import'
+        this.consume('OPERATOR', 'Expected { after import', '{');
+        const names = [];
+        if (!this.check('OPERATOR', '}')) {
+            do {
+                names.push(this.consume('IDENT', 'Expected identifier').value);
+            } while (this.match('OPERATOR', ','));
+        }
+        this.consume('OPERATOR', 'Expected }', '}');
+        this.consume('KEYWORD', 'Expected from', 'from');
+        const module = this.consume('STRING', 'Expected module path').value;
+        this.expectNewline();
+        return { type: 'import', names, module };
+    }
+    parseExport() {
+        this.advance(); // 'export'
+        if (this.match('KEYWORD', 'const')) {
+            const name = this.consume('IDENT', 'Expected variable name').value;
+            this.consume('OPERATOR', 'Expected =', '=');
+            const expression = this.parseExpression();
+            this.expectNewline();
+            return { type: 'export', name, expression };
+        }
+        else if (this.match('KEYWORD', 'fn')) {
+            const name = this.consume('IDENT', 'Expected function name').value;
+            // Parse function as usual
+            const func = this.parseFunction();
+            return { type: 'export', name, expression: { type: 'call', name: 'fn', args: [] } }; // Placeholder
+        }
+        else {
+            const name = this.consume('IDENT', 'Expected identifier').value;
+            this.expectNewline();
+            return { type: 'export', name };
+        }
     }
     parseBlock() {
         const statements = [];
@@ -421,4 +462,3 @@ function parse(tokens, filePath) {
     const parser = new Parser(tokens, filePath);
     return parser.parse();
 }
-exports.parse = parse;

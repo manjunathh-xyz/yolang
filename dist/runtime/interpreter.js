@@ -13,6 +13,7 @@ class Interpreter {
         this.envStack = [new Map()];
         this.consts = new Set();
         this.functions = new Map();
+        this.modules = new Map();
         this.stepCount = 0;
     }
     currentEnv() {
@@ -55,7 +56,7 @@ class Interpreter {
     checkStepLimit() {
         this.stepCount++;
         if (this.options.maxSteps && this.stepCount > this.options.maxSteps) {
-            throw new RuntimeError_1.RuntimeError('Execution step limit exceeded');
+            throw new RuntimeError_1.RuntimeError('Execution step limit exceeded', undefined, undefined, undefined, undefined, this.callStack.getStackTrace());
         }
     }
     executeStatement(stmt) {
@@ -141,6 +142,14 @@ class Interpreter {
                 const switchStmt = stmt;
                 this.executeSwitch(switchStmt);
                 break;
+            case 'import':
+                const importStmt = stmt;
+                this.executeImport(importStmt);
+                break;
+            case 'export':
+                const exportStmt = stmt;
+                this.executeExport(exportStmt);
+                break;
         }
     }
     evaluate(expr) {
@@ -148,15 +157,19 @@ class Interpreter {
             case 'literal':
                 const lit = expr;
                 switch (lit.valueType) {
-                    case 'number': return values_1.Value.number(lit.value);
-                    case 'string': return values_1.Value.string(lit.value);
-                    case 'boolean': return values_1.Value.boolean(lit.value);
-                    default: throw new RuntimeError_1.RuntimeError('Unknown literal type');
+                    case 'number':
+                        return values_1.Value.number(lit.value);
+                    case 'string':
+                        return values_1.Value.string(lit.value);
+                    case 'boolean':
+                        return values_1.Value.boolean(lit.value);
+                    default:
+                        throw new RuntimeError_1.RuntimeError('Unknown literal type');
                 }
             case 'variable':
                 const varExpr = expr;
                 if (!this.currentEnv().has(varExpr.name)) {
-                    throw new RuntimeError_1.RuntimeError(`Undefined variable '${varExpr.name}'`, undefined, undefined, undefined, 'Make sure the variable is defined before use');
+                    throw new RuntimeError_1.RuntimeError(`Undefined variable '${varExpr.name}'`, undefined, undefined, undefined, 'Make sure the variable is defined before use', this.callStack.getStackTrace());
                 }
                 return this.currentEnv().get(varExpr.name);
             case 'binary':
@@ -165,7 +178,7 @@ class Interpreter {
                 return this.evaluateCall(expr);
             case 'array':
                 const arrExpr = expr;
-                const elements = arrExpr.elements.map(e => this.evaluate(e));
+                const elements = arrExpr.elements.map((e) => this.evaluate(e));
                 return values_1.Value.array(elements);
             case 'object':
                 const objExpr = expr;
@@ -228,12 +241,13 @@ class Interpreter {
             throw new RuntimeError_1.RuntimeError(`Undefined function '${expr.name}'`, undefined, undefined, undefined, 'Make sure the function is defined before use');
         }
         // Handle default and rest params
-        const expectedArgs = func.params.filter(p => !p.defaultValue).length;
+        const expectedArgs = func.params.filter((p) => !p.defaultValue).length;
         const maxArgs = func.restParam ? Infinity : func.params.length;
         if (expr.args.length < expectedArgs || expr.args.length > maxArgs) {
-            throw new RuntimeError_1.RuntimeError(`Function '${expr.name}' expects ${expectedArgs} to ${maxArgs} arguments, got ${expr.args.length}`);
+            throw new RuntimeError_1.RuntimeError(`Function '${expr.name}' expects ${expectedArgs} to ${maxArgs} arguments, got ${expr.args.length}`, undefined, undefined, undefined, undefined, this.callStack.getStackTrace());
         }
         // Create new environment
+        this.callStack.push({ functionName: expr.name, line: 0, column: 0 });
         const funcEnv = new Map(this.currentEnv());
         let argIndex = 0;
         for (const param of func.params) {
@@ -246,7 +260,7 @@ class Interpreter {
             argIndex++;
         }
         if (func.restParam) {
-            const restArgs = expr.args.slice(argIndex).map(arg => this.evaluate(arg));
+            const restArgs = expr.args.slice(argIndex).map((arg) => this.evaluate(arg));
             funcEnv.set(func.restParam, values_1.Value.array(restArgs));
         }
         this.envStack.push(funcEnv);
@@ -272,6 +286,7 @@ class Interpreter {
         }
         finally {
             this.envStack.pop();
+            this.callStack.pop();
         }
     }
     isBuiltinFunction(name) {
@@ -282,9 +297,9 @@ class Interpreter {
         if (!builtin) {
             throw new RuntimeError_1.RuntimeError(`Unknown builtin function '${expr.name}'`);
         }
-        const args = expr.args.map(arg => this.evaluate(arg));
+        const args = expr.args.map((arg) => this.evaluate(arg));
         if (this.options.trace) {
-            this.emit('call', { function: expr.name, args: args.map(a => a.toString()) });
+            this.emit('call', { function: expr.name, args: args.map((a) => a.toString()) });
         }
         const result = builtin(args);
         if (this.options.trace) {
@@ -501,6 +516,42 @@ class Interpreter {
         if (stmt.defaultCase) {
             for (const s of stmt.defaultCase) {
                 this.executeStatement(s);
+            }
+        }
+    }
+    executeImport(stmt) {
+        // For now, assume modules are loaded externally
+        // In full implementation, this would load the module file
+        const moduleExports = this.modules.get(stmt.module);
+        if (!moduleExports) {
+            throw new RuntimeError_1.RuntimeError(`Module '${stmt.module}' not found`);
+        }
+        for (const name of stmt.names) {
+            if (moduleExports.has(name)) {
+                this.currentEnv().set(name, moduleExports.get(name));
+            }
+            else {
+                throw new RuntimeError_1.RuntimeError(`Export '${name}' not found in module '${stmt.module}'`);
+            }
+        }
+    }
+    executeExport(stmt) {
+        // For now, add to current module (assuming file-based)
+        // In full implementation, track per-file exports
+        if (!this.modules.has('current')) {
+            this.modules.set('current', new Map());
+        }
+        const currentModule = this.modules.get('current');
+        if (stmt.expression) {
+            currentModule.set(stmt.name, this.evaluate(stmt.expression));
+        }
+        else {
+            // Export existing variable
+            if (this.currentEnv().has(stmt.name)) {
+                currentModule.set(stmt.name, this.currentEnv().get(stmt.name));
+            }
+            else {
+                throw new RuntimeError_1.RuntimeError(`Cannot export undefined variable '${stmt.name}'`);
             }
         }
     }

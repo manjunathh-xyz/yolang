@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.tokenize = void 0;
+exports.tokenize = tokenize;
 const keywords_1 = require("../keywords");
 const SyntaxError_1 = require("../errors/SyntaxError");
 function tokenize(source, filePath) {
@@ -131,4 +131,3 @@ function tokenize(source, filePath) {
     tokens.push({ type: 'EOF', value: '', line, column });
     return tokens;
 }
-exports.tokenize = tokenize;
