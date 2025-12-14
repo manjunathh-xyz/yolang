@@ -47,7 +47,7 @@ Each package must include:
 
 Kexra documentation is hosted on GitHub Pages.
 
-🔗 https://sst.github.io/yolang/
+🔗 https://manjunathh-xyz.github.io/kexra/
 
 ## Links
 
