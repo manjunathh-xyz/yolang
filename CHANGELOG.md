@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2025-12-14
+
+### Added
+
+- Complete Kexra documentation (120+ pages)
+- Vercel-hosted web app with package ecosystem
+- Per-package documentation and website content
+- GitHub-based static site generation
+- Comprehensive language reference
+- Package authoring guides
+- Runtime internals documentation
+
+### Changed
+
+- Documentation is now the primary product deliverable
+- Web app serves as documentation and package discovery platform
+- All content sourced directly from repository files
+
 ## [Unreleased]
 
 ### Changed
