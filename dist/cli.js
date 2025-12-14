@@ -4,7 +4,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const runtime_1 = require("./runtime/runtime");
 const repl_1 = require("./repl/repl");
 const package_1 = require("./package");
-const VERSION = '1.1.2';
+const VERSION = '1.20.0';
 const pkgManager = new package_1.PackageManager();
 function showHelp() {
     console.log(`Kexra v${VERSION}`);
@@ -123,10 +123,11 @@ function main() {
         const flags = args.slice(2);
         const debug = flags.includes('--debug');
         const trace = flags.includes('--trace');
+        const profile = flags.includes('--profile');
         console.log(`🚀 Kexra v${VERSION}`);
         console.log(`Running: ${filePath}`);
         console.log('──────────────────────────');
-        const runtime = new runtime_1.KexraRuntime({ debug, trace });
+        const runtime = new runtime_1.KexraRuntime({ debug, trace, profile });
         if (trace) {
             runtime.on('call', (data) => {
                 console.log(`→ call ${data.function}(${data.args.join(', ')})`);

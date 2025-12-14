@@ -115,13 +115,21 @@ class Parser {
         if (!this.check('OPERATOR', ')')) {
             do {
                 const paramName = this.expectIdentifier('Expected parameter name').value;
-                params.push({ name: paramName });
+                let paramType;
+                if (this.match('OPERATOR', ':')) {
+                    paramType = this.parseType();
+                }
+                params.push({ name: paramName, type: paramType });
             } while (this.match('OPERATOR', ','));
         }
         this.expect('OPERATOR', ')', 'Expected )');
+        let returnType;
+        if (this.match('OPERATOR', ':')) {
+            returnType = this.parseType();
+        }
         this.expect('BLOCK_START', 'Expected {');
         const body = this.parseBlock();
-        return { type: 'function', name, params, body };
+        return { type: 'function', name, params, returnType, body };
     }
     parseReturn() {
         let expression;
@@ -440,23 +448,32 @@ class Parser {
         throw this.error(this.peek(), message);
     }
     expectNewline() {
-        if (!this.isAtEnd() &&
-            this.peek().type !== 'NEWLINE' &&
-            this.peek().type !== 'BLOCK_END' &&
-            this.peek().type !== 'EOF') {
+        if (!this.isAtEnd() && this.peek().type !== 'NEWLINE' && this.peek().type !== 'BLOCK_END' && this.peek().type !== 'EOF') {
             throw this.error(this.peek(), 'Expected newline');
         }
         while (!this.isAtEnd() && this.peek().type === 'NEWLINE')
             this.advance();
     }
-    checkNewline() {
-        return !this.isAtEnd() && this.peek().type === 'NEWLINE';
-    }
-    error(token, message) {
-        throw new SyntaxError(`[line ${token.line}] ${message}`);
+    parseType() {
+        if (this.match('IDENT')) {
+            return { kind: 'primitive', name: this.previous().value };
+        }
+        return undefined;
     }
 }
 exports.Parser = Parser;
+() && this.peek().type === 'NEWLINE';
+this.advance();
+checkNewline();
+boolean;
+{
+    return !this.isAtEnd() && this.peek().type === 'NEWLINE';
+}
+error(token, types_1.Token, message, string);
+never;
+{
+    throw new SyntaxError(`[line ${token.line}] ${message}`);
+}
 function parse(tokens, filePath) {
     const parser = new Parser(tokens, filePath);
     const statements = [];

@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.20.0] - 2025-12-14
+
+### Added
+
+- Optional typing system with type annotations
+- Structured error system with detailed information
+- Runtime profiling with execution timing
+- Formal language specification in /spec
+- Enhanced stack traces and introspection
+- Determinism guarantees and async scheduling rules
+
+### Improved
+
+- Error messages with clearer context and suggestions
+- CLI tooling with better feedback
+- Package validation and GitHub-based system refinement
+- Runtime safety with no panics
+- Documentation authority with spec references
+
+### Notes
+
+- Major language maturity release
+- No breaking changes
+- All v1.x code continues to work
+
 ## [1.1.1] - 2025-12-14
 
 ### Fixed

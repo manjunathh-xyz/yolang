@@ -46,6 +46,7 @@ export interface RuntimeOptions {
   trace?: boolean;
   maxSteps?: number;
   deterministic?: boolean;
+  profile?: boolean;
 }
 
 type EmitFn = (event: string, data: any) => void;

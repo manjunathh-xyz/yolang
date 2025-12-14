@@ -18,6 +18,11 @@ export interface Token {
   column: number;
 }
 
+export interface Type {
+  kind: 'primitive';
+  name: string;
+}
+
 export type Expression =
   | LiteralExpression
   | VariableExpression
@@ -178,8 +183,9 @@ export interface LoopStatement {
 export interface FunctionDeclaration {
   type: 'function';
   name: string;
-  params: Parameter[];
+  params: { name: string; type?: Type }[];
   restParam?: string;
+  returnType?: Type;
   body: Statement[];
 }
 
@@ -243,6 +249,7 @@ export interface UseStatement {
 
 export interface Parameter {
   name: string;
+  type?: Type;
   defaultValue?: Expression;
 }
 

@@ -8,7 +8,7 @@ import { CliError } from './errors/CliError';
 import { KexraError } from './errors/KexraError';
 import { PackageManager } from './package';
 
-const VERSION = '1.1.2';
+const VERSION = '1.20.0';
 const pkgManager = new PackageManager();
 
 function showHelp() {
@@ -136,12 +136,13 @@ function main() {
     const flags = args.slice(2);
     const debug = flags.includes('--debug');
     const trace = flags.includes('--trace');
+    const profile = flags.includes('--profile');
 
     console.log(`🚀 Kexra v${VERSION}`);
     console.log(`Running: ${filePath}`);
     console.log('──────────────────────────');
 
-    const runtime = new KexraRuntime({ debug, trace });
+    const runtime = new KexraRuntime({ debug, trace, profile });
 
     if (trace) {
       runtime.on('call', (data) => {
