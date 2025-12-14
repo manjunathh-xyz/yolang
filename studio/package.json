@@ -1,0 +1,13 @@
+{
+  "name": "kexra-studio",
+  "version": "0.7.0",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite dev"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0",
+    "typescript": "^5.0.0"
+  }
+}
