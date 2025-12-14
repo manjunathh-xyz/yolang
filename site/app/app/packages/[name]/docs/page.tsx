@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getPackageMeta, getPackageDocs } from '@/lib/packages';
+import { getPackages, getPackageMeta, getPackageDocs } from '@/lib/packages';
 import { remark } from 'remark';
 import html from 'remark-html';
 
@@ -7,6 +7,13 @@ interface PageProps {
   params: {
     name: string;
   };
+}
+
+export async function generateStaticParams() {
+  const packages = getPackages();
+  return packages.map((pkg) => ({
+    name: pkg.name,
+  }));
 }
 
 export default async function PackageDocsPage({ params }: PageProps) {

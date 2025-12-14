@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import { getPackageMeta, getPackageWebsite } from '@/lib/packages';
+import { getPackages, getPackageMeta, getPackageWebsite } from '@/lib/packages';
 import { remark } from 'remark';
 import html from 'remark-html';
 
@@ -10,9 +10,10 @@ interface PageProps {
 }
 
 export async function generateStaticParams() {
-  // For static generation, we can't read files at build time in this way
-  // We'll handle it dynamically
-  return [];
+  const packages = getPackages();
+  return packages.map((pkg) => ({
+    name: pkg.name,
+  }));
 }
 
 export default async function PackagePage({ params }: PageProps) {
