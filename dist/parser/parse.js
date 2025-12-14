@@ -156,6 +156,7 @@ class Parser {
         // No unary operators yet
         return this.parsePrimary();
     }
+    // TODO: v0.5.0 - Add parsing for arrays [], objects {}, and indexing []
     parsePrimary() {
         if (this.match('NUMBER')) {
             return { type: 'literal', valueType: 'number', value: parseFloat(this.previous().value) };
@@ -163,21 +164,20 @@ class Parser {
         if (this.match('STRING')) {
             return { type: 'literal', valueType: 'string', value: this.previous().value };
         }
+        if (this.match('KEYWORD', 'true')) {
+            return { type: 'literal', valueType: 'boolean', value: true };
+        }
+        if (this.match('KEYWORD', 'false')) {
+            return { type: 'literal', valueType: 'boolean', value: false };
+        }
+        if (this.match('OPERATOR', '[')) {
+            return this.parseArray();
+        }
+        if (this.match('OPERATOR', '{')) {
+            return this.parseObject();
+        }
         if (this.match('IDENT')) {
-            const name = this.previous().value;
-            if (this.match('OPERATOR', '(')) {
-                const args = [];
-                if (!this.check('OPERATOR', ')')) {
-                    do {
-                        args.push(this.parseExpression());
-                    } while (this.match('OPERATOR', ','));
-                }
-                this.consume('OPERATOR', 'Expected )', ')');
-                return { type: 'call', name, args };
-            }
-            else {
-                return { type: 'variable', name };
-            }
+            return this.parseIdentifierOrCall();
         }
         if (this.match('OPERATOR', '(')) {
             const expr = this.parseExpression();
@@ -185,6 +185,51 @@ class Parser {
             return expr;
         }
         throw this.error(this.peek(), 'Expected expression');
+    }
+    parseArray() {
+        const elements = [];
+        if (!this.check('OPERATOR', ']')) {
+            do {
+                elements.push(this.parseExpression());
+            } while (this.match('OPERATOR', ','));
+        }
+        this.consume('OPERATOR', 'Expected ]', ']');
+        return { type: 'array', elements };
+    }
+    parseObject() {
+        const properties = [];
+        if (!this.check('OPERATOR', '}')) {
+            do {
+                const key = this.consume('IDENT', 'Expected property name').value;
+                this.consume('OPERATOR', 'Expected :', ':');
+                const value = this.parseExpression();
+                properties.push({ key, value });
+            } while (this.match('OPERATOR', ','));
+        }
+        this.consume('OPERATOR', 'Expected }', '}');
+        return { type: 'object', properties };
+    }
+    parseIdentifierOrCall() {
+        const name = this.previous().value;
+        let expr = { type: 'variable', name };
+        // Handle indexing
+        while (this.match('OPERATOR', '[')) {
+            const index = this.parseExpression();
+            this.consume('OPERATOR', 'Expected ]', ']');
+            expr = { type: 'index', object: expr, index };
+        }
+        // Handle function calls
+        if (this.match('OPERATOR', '(')) {
+            const args = [];
+            if (!this.check('OPERATOR', ')')) {
+                do {
+                    args.push(this.parseExpression());
+                } while (this.match('OPERATOR', ','));
+            }
+            this.consume('OPERATOR', 'Expected )', ')');
+            expr = { type: 'call', name, args };
+        }
+        return expr;
     }
     match(type, ...values) {
         if (this.check(type, ...values)) {

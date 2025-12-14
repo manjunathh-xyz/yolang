@@ -7,6 +7,8 @@
 
 Kexra is an interpreted scripting language designed for learning programming concepts. Simple syntax, clear error messages, and comprehensive documentation make it perfect for beginners and students.
 
+**v0.5.0 - Arrays, Objects & Standard Library** ✨
+
 ## 📦 Installation
 
 ```bash
@@ -18,7 +20,12 @@ npm install -g kexra
 Create `hello.kx`:
 
 ```kx
-say "Hello, Kexra!"
+# Arrays and objects in v0.5.0!
+set numbers = [1, 2, 3, 4, 5]
+set user = { name: "Kexra", version: 0.5 }
+
+say "Hello, " + user.name + "! (v" + user.version + ")"
+say "Array length: " + len(numbers)
 ```
 
 Run it:
@@ -45,6 +52,8 @@ Visit the website: https://kexra.js.org
 - Simple, English-like syntax
 - Interactive REPL
 - User-defined functions
+- **Arrays and objects** (v0.5.0)
+- **Standard library** with built-in functions (v0.5.0)
 - Clear error messages
 - Educational focus
 

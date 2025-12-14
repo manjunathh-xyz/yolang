@@ -2,8 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0/0),
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.5.0] - 2025-12-14
+
+### Added
+- **Arrays**: Ordered collections with `[]` syntax and zero-based indexing
+- **Objects**: Key-value data structures with `{}` syntax and dot/bracket access
+- **Indexing**: Support for `array[index]` and `object["key"]` syntax
+- **Standard Library**: Built-in functions (`len`, `type`, `print`, `keys`, `values`)
+- **Enhanced Type System**: Unified `Value` type for runtime type safety
+
+### Changed
+- **Runtime Architecture**: Complete rewrite for complex data types
+- **Parser Extensions**: Added parsing for arrays, objects, and indexing
+- **Error Handling**: Improved error messages with bounds checking
+
+### Notes
+- Major language expansion from simple expressions to data structures
+- Foundation for real programming with collections and objects
 
 ## [0.4.2] - 2025-12-14
 
