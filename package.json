@@ -1,6 +1,6 @@
 {
   "name": "kexra",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A playful, beginner-friendly scripting language",
   "main": "dist/cli.js",
   "bin": {
@@ -9,7 +9,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/cli.js",
-    "test": "npm run build && node dist/cli.js run examples/hello.yo && node dist/cli.js run examples/test.yo"
+    "test": "npm run build && node dist/cli.js run examples/hello.kx && node dist/cli.js run examples/test.kx"
   },
   "keywords": ["language", "scripting", "toy", "beginner"],
    "author": "manjunathh-xyz",

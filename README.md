@@ -259,6 +259,20 @@ Line: 3
 Hint: Use "=" for assignment, not "=="
 ```
 
+## 📚 Documentation
+
+Full documentation is available at:
+https://github.com/manjunathh-xyz/kexra/tree/main/docs
+
+- [Getting Started](docs/getting-started.md) - Installation and first program
+- [Syntax](docs/syntax.md) - Basic grammar and structure
+- [Variables](docs/variables.md) - Working with data
+- [Functions](docs/functions.md) - Defining and calling functions
+- [Control Flow](docs/control-flow.md) - Conditionals and loops
+- [REPL](docs/repl.md) - Interactive development
+- [CLI](docs/cli.md) - Command-line interface
+- [Errors](docs/errors.md) - Understanding error messages
+
 ## 🛣️ Roadmap
 
 - [x] Functions and procedures

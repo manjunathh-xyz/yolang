@@ -5,6 +5,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0/0),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.1] - 2025-12-14
+
+### Added
+
+- Complete documentation under `/docs`
+- Detailed guides for syntax, functions, REPL, CLI, and errors
+- Lightweight website landing page linking to docs
+- Credits and roadmap documentation
+
+### Changed
+
+- Website now links directly to `/docs` as single source of truth
+- README updated to reference docs
+- Unified documentation structure
+
+### Notes
+
+- No language or CLI changes
+
 ## [0.4.0] - 2025-12-14
 
 ### Added

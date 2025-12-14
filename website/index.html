@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kexra - A Small, Friendly Scripting Language</title>
+    <meta name="description" content="Kexra is a simple, beginner-friendly scripting language built with TypeScript.">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="logo.svg" type="image/svg+xml">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <img src="logo.svg" alt="Kexra Logo" class="logo">
+            <p class="tagline">A small, friendly scripting language built for learning.</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section id="hero">
+            <h1>Welcome to Kexra</h1>
+            <p>Kexra is a simple interpreted scripting language designed for beginners, hobbyists, and anyone interested in language design. It's built with TypeScript and runs on Node.js.</p>
+
+            <div class="code-block">
+                <pre><code>say "Hello, Kexra"
+
+set x = 5
+
+check x > 3 {
+  say "x is big"
+}
+
+fn add(a, b) {
+  return a + b
+}
+
+say add(2, 3)</code></pre>
+            </div>
+
+            <div class="install">
+                <h3>Install & Run</h3>
+                <pre><code>npm install -g kexra
+kex run examples/hello.kx</code></pre>
+                <a href="https://github.com/manjunathh-xyz/kexra" class="btn">View on GitHub</a>
+            </div>
+        </section>
+
+        <section id="docs">
+            <h2>📘 Documentation</h2>
+            <p>Full documentation is available to help you learn and use Kexra effectively.</p>
+            <a href="https://github.com/manjunathh-xyz/kexra/blob/main/docs/index.md" class="btn primary">Read the Docs</a>
+        </section>
+
+        <section id="features">
+            <h2>✨ Features</h2>
+            <ul>
+                <li>🎯 Easy Syntax: Inspired by casual developer English</li>
+                <li>⚡ Interpreted: Instant feedback with no compilation step</li>
+                <li>🖥️ Interactive REPL: Experiment in real-time</li>
+                <li>🔧 Extensible: Open-source and built for learning</li>
+                <li>📚 Educational: Perfect for understanding language internals</li>
+                <li>🧮 Functions: User-defined functions with parameters and return values</li>
+            </ul>
+        </section>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2025 Kexra. Built with ❤️ using TypeScript.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
