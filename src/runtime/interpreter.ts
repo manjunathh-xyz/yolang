@@ -32,6 +32,8 @@ import {
   OptionalChainExpression,
   AwaitExpression,
   UnaryExpression,
+  Parameter,
+  Type,
 } from '../types';
 import { RuntimeError } from '../errors/RuntimeError';
 import { Value, ValueType, RuntimeFn } from './values';
@@ -346,7 +348,8 @@ export class Interpreter {
       );
     }
     // Handle default and rest params
-    const expectedArgs = func.params.filter((p) => !p.defaultValue).length;
+    const params = func.params as Parameter[];
+    const expectedArgs = params.filter((p) => !p.defaultValue).length;
     const maxArgs = func.restParam ? Infinity : func.params.length;
     if (expr.args.length < expectedArgs || expr.args.length > maxArgs) {
       throw new RuntimeError(
@@ -362,7 +365,7 @@ export class Interpreter {
     this.callStack.push({ functionName: expr.name, line: 0, column: 0 });
     const funcEnv = new Map(this.currentEnv());
     let argIndex = 0;
-    for (const param of func.params) {
+    for (const param of func.params as Parameter[]) {
       if (argIndex < expr.args.length) {
         funcEnv.set(param.name, this.evaluate(expr.args[argIndex]));
       } else if (param.defaultValue) {

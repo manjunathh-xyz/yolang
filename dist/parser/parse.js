@@ -448,11 +448,17 @@ class Parser {
         throw this.error(this.peek(), message);
     }
     expectNewline() {
-        if (!this.isAtEnd() && this.peek().type !== 'NEWLINE' && this.peek().type !== 'BLOCK_END' && this.peek().type !== 'EOF') {
+        if (!this.isAtEnd() &&
+            this.peek().type !== 'NEWLINE' &&
+            this.peek().type !== 'BLOCK_END' &&
+            this.peek().type !== 'EOF') {
             throw this.error(this.peek(), 'Expected newline');
         }
         while (!this.isAtEnd() && this.peek().type === 'NEWLINE')
             this.advance();
+    }
+    checkNewline() {
+        return !this.isAtEnd() && this.peek().type === 'NEWLINE';
     }
     parseType() {
         if (this.match('IDENT')) {
@@ -460,20 +466,11 @@ class Parser {
         }
         return undefined;
     }
+    error(token, message) {
+        throw new SyntaxError(`[line ${token.line}] ${message}`);
+    }
 }
 exports.Parser = Parser;
-() && this.peek().type === 'NEWLINE';
-this.advance();
-checkNewline();
-boolean;
-{
-    return !this.isAtEnd() && this.peek().type === 'NEWLINE';
-}
-error(token, types_1.Token, message, string);
-never;
-{
-    throw new SyntaxError(`[line ${token.line}] ${message}`);
-}
 function parse(tokens, filePath) {
     const parser = new Parser(tokens, filePath);
     const statements = [];

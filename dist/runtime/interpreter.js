@@ -298,7 +298,8 @@ class Interpreter {
             throw new RuntimeError_1.RuntimeError(`Undefined function '${expr.name}'`, undefined, undefined, undefined, undefined, this.callStack.getStackTrace());
         }
         // Handle default and rest params
-        const expectedArgs = func.params.filter((p) => !p.defaultValue).length;
+        const params = func.params;
+        const expectedArgs = params.filter((p) => !p.defaultValue).length;
         const maxArgs = func.restParam ? Infinity : func.params.length;
         if (expr.args.length < expectedArgs || expr.args.length > maxArgs) {
             throw new RuntimeError_1.RuntimeError(`Function '${expr.name}' expects ${expectedArgs} to ${maxArgs} arguments, got ${expr.args.length}`, undefined, undefined, undefined, undefined, this.callStack.getStackTrace());

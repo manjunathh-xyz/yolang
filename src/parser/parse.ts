@@ -35,6 +35,7 @@ import {
   AwaitExpression,
   UnaryExpression,
   Parameter,
+  Type,
 } from '../types';
 
 export class Parser {
@@ -162,13 +163,21 @@ export class Parser {
     if (!this.check('OPERATOR', ')')) {
       do {
         const paramName = this.expectIdentifier('Expected parameter name').value;
-        params.push({ name: paramName });
+        let paramType: Type | undefined;
+        if (this.match('OPERATOR', ':')) {
+          paramType = this.parseType();
+        }
+        params.push({ name: paramName, type: paramType } as Parameter);
       } while (this.match('OPERATOR', ','));
     }
     this.expect('OPERATOR', ')', 'Expected )');
+    let returnType: Type | undefined;
+    if (this.match('OPERATOR', ':')) {
+      returnType = this.parseType();
+    }
     this.expect('BLOCK_START', 'Expected {');
     const body = this.parseBlock();
-    return { type: 'function', name, params, body };
+    return { type: 'function', name, params, returnType, body };
   }
 
   private parseReturn(): ReturnStatement {
@@ -532,6 +541,13 @@ export class Parser {
 
   private checkNewline(): boolean {
     return !this.isAtEnd() && this.peek().type === 'NEWLINE';
+  }
+
+  private parseType(): Type | undefined {
+    if (this.match('IDENT')) {
+      return { kind: 'primitive', name: this.previous().value };
+    }
+    return undefined;
   }
 
   private error(token: Token, message: string): never {

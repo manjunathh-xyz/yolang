@@ -2,6 +2,7 @@
 
 import { readFileSync } from 'fs';
 import { KexraRuntime } from './runtime/runtime';
+import { RuntimeOptions } from './runtime/interpreter';
 import { reportError } from './errors/reporter';
 import { startRepl } from './repl/repl';
 import { CliError } from './errors/CliError';
