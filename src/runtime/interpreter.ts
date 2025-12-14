@@ -1,14 +1,17 @@
-import { Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, FunctionDeclaration, ReturnStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, Value } from '../types';
-import { RuntimeError } from '../errors/RuntimeError';
+ import { Program, Statement, SayStatement, SetStatement, CheckStatement, LoopStatement, ForStatement, FunctionDeclaration, ReturnStatement, BreakStatement, ContinueStatement, Expression, LiteralExpression, VariableExpression, BinaryExpression, LogicalExpression, CallExpression, ArrayExpression, ObjectExpression, IndexExpression, NilSafeExpression, RangeExpression } from '../types';
+ import { RuntimeError } from '../errors/RuntimeError';
+ import { Value, ValueType, RuntimeFn } from './values';
+ import { CallStack } from './stack';
 
-// TODO: v0.5.0 - Complete interpreter rewrite for Value types
-// - Implement evaluateArray, evaluateObject, evaluateIndex
-// - Update evaluateBinary for Value types
-// - Add builtin functions: len, type, print, keys, values
-// - Fix environment handling for complex types
 export class Interpreter {
   private envStack: Map<string, Value>[] = [new Map()];
   private functions: Map<string, FunctionDeclaration> = new Map();
+
+  constructor(
+    private callStack: CallStack,
+    private builtins: Record<string, RuntimeFn>,
+    private customBuiltins: Map<string, RuntimeFn>
+  ) {}
 
   private currentEnv(): Map<string, Value> {
     return this.envStack[this.envStack.length - 1];
@@ -25,28 +28,29 @@ export class Interpreter {
 
   private valueToJS(value: Value): any {
     switch (value.type) {
-      case 'number':
-      case 'string':
-      case 'boolean':
-      case 'null':
+      case ValueType.NUMBER:
+      case ValueType.STRING:
+      case ValueType.BOOLEAN:
+      case ValueType.NULL:
         return value.value;
-      case 'array':
-        return value.value.map(v => this.valueToJS(v));
-      case 'object':
+      case ValueType.ARRAY:
+        return value.value.map((v: any) => this.valueToJS(v as Value));
+      case ValueType.OBJECT:
         const obj: Record<string, any> = {};
-        for (const [k, v] of value.value) {
-          obj[k] = this.valueToJS(v);
+        for (const [k, v] of Object.entries(value.value)) {
+          obj[k] = this.valueToJS(v as Value);
         }
         return obj;
-      case 'function':
-        return `<function ${value.value.name}>`;
+      case ValueType.FUNCTION:
+        return `<function>`;
     }
   }
 
-  interpret(program: Program) {
+  interpret(program: Program): Value {
     for (const stmt of program) {
       this.executeStatement(stmt);
     }
+    return Value.null(); // or last value, but for now null
   }
 
   private executeStatement(stmt: Statement) {
@@ -73,31 +77,54 @@ export class Interpreter {
           }
         }
         break;
-      case 'loop':
-        const loopStmt = stmt as LoopStatement;
-        while (this.evaluateToBoolean(loopStmt.condition)) {
-          for (const s of loopStmt.body) {
-            this.executeStatement(s);
-          }
-        }
-        break;
+       case 'loop':
+         const loopStmt = stmt as LoopStatement;
+         while (this.evaluateToBoolean(loopStmt.condition)) {
+           try {
+             for (const s of loopStmt.body) {
+               this.executeStatement(s);
+             }
+           } catch (e) {
+             if (e && typeof e === 'object' && 'type' in e) {
+               if ((e as any).type === 'break') break;
+               if ((e as any).type === 'continue') continue;
+             }
+             throw e;
+           }
+         }
+         break;
       case 'function':
         const funcStmt = stmt as FunctionDeclaration;
         this.functions.set(funcStmt.name, funcStmt);
         break;
-      case 'return':
-        const retStmt = stmt as ReturnStatement;
-        const returnValue = retStmt.expression ? this.evaluate(retStmt.expression) : null;
-        throw { type: 'return', value: returnValue };
-        break;
-    }
+       case 'return':
+         const retStmt = stmt as ReturnStatement;
+         const returnValue = retStmt.expression ? this.evaluate(retStmt.expression) : Value.null();
+         throw { type: 'return', value: returnValue };
+         break;
+       case 'for':
+         const forStmt = stmt as ForStatement;
+         this.executeFor(forStmt);
+         break;
+       case 'break':
+         throw { type: 'break' };
+         break;
+       case 'continue':
+         throw { type: 'continue' };
+         break;
+     }
   }
 
   private evaluate(expr: Expression): Value {
     switch (expr.type) {
       case 'literal':
         const lit = expr as LiteralExpression;
-        return { type: lit.valueType, value: lit.value } as Value;
+        switch (lit.valueType) {
+          case 'number': return Value.number(lit.value as number);
+          case 'string': return Value.string(lit.value as string);
+          case 'boolean': return Value.boolean(lit.value as boolean);
+          default: throw new RuntimeError('Unknown literal type');
+        }
       case 'variable':
         const varExpr = expr as VariableExpression;
         if (!this.currentEnv().has(varExpr.name)) {
@@ -111,16 +138,22 @@ export class Interpreter {
       case 'array':
         const arrExpr = expr as ArrayExpression;
         const elements = arrExpr.elements.map(e => this.evaluate(e));
-        return { type: 'array', value: elements };
+        return Value.array(elements);
       case 'object':
         const objExpr = expr as ObjectExpression;
-        const properties = new Map<string, Value>();
+        const obj: Record<string, Value> = {};
         for (const prop of objExpr.properties) {
-          properties.set(prop.key, this.evaluate(prop.value));
+          obj[prop.key] = this.evaluate(prop.value);
         }
-        return { type: 'object', value: properties };
+        return Value.object(obj);
       case 'index':
         return this.evaluateIndex(expr as IndexExpression);
+      case 'logical':
+        return this.evaluateLogical(expr as LogicalExpression);
+      case 'nil-safe':
+        return this.evaluateNilSafe(expr as NilSafeExpression);
+      case 'range':
+        return this.evaluateRange(expr as RangeExpression);
     }
   }
 
@@ -128,8 +161,8 @@ export class Interpreter {
     const object = this.evaluate(expr.object);
     const index = this.evaluate(expr.index);
 
-    if (object.type === 'array') {
-      if (index.type !== 'number') {
+    if (object.type === ValueType.ARRAY) {
+      if (index.type !== ValueType.NUMBER) {
         throw new RuntimeError('Array index must be a number');
       }
       const idx = index.value;
@@ -137,16 +170,16 @@ export class Interpreter {
         throw new RuntimeError(`Cannot access index ${idx} on array of length ${object.value.length}`);
       }
       return object.value[idx];
-    } else if (object.type === 'object') {
-      if (index.type !== 'string') {
+    } else if (object.type === ValueType.OBJECT) {
+      if (index.type !== ValueType.STRING) {
         throw new RuntimeError('Object key must be a string');
       }
       const key = index.value;
-      if (!object.value.has(key)) {
-        const availableKeys = Array.from(object.value.keys()).join(', ');
+      if (!(key in object.value)) {
+        const availableKeys = Object.keys(object.value).join(', ');
         throw new RuntimeError(`Key "${key}" does not exist on object`, undefined, undefined, undefined, `Available keys: ${availableKeys}`);
       }
-      return object.value.get(key)!;
+      return object.value[key];
     } else {
       throw new RuntimeError('Can only index arrays and objects');
     }
@@ -175,10 +208,10 @@ export class Interpreter {
       for (const stmt of func.body) {
         this.executeStatement(stmt);
       }
-      return { type: 'null', value: null } as Value; // default return
+      return Value.null(); // default return
     } catch (e) {
       if (e && typeof e === 'object' && 'type' in e && (e as any).type === 'return') {
-        return (e as any).value || { type: 'null', value: null } as Value;
+        return (e as any).value || Value.null();
       }
       throw e;
     } finally {
@@ -187,100 +220,146 @@ export class Interpreter {
   }
 
   private isBuiltinFunction(name: string): boolean {
-    return ['len', 'type', 'print', 'keys', 'values'].includes(name);
+    return name in this.builtins || this.customBuiltins.has(name);
   }
 
   private evaluateBuiltin(expr: CallExpression): Value {
-    switch (expr.name) {
-      case 'len':
-        if (expr.args.length !== 1) throw new RuntimeError('len() expects 1 argument');
-        const arg = this.evaluate(expr.args[0]);
-        if (arg.type === 'string') {
-          return { type: 'number', value: arg.value.length };
-        } else if (arg.type === 'array') {
-          return { type: 'number', value: arg.value.length };
-        } else {
-          throw new RuntimeError('len() expects string or array');
-        }
-      case 'type':
-        if (expr.args.length !== 1) throw new RuntimeError('type() expects 1 argument');
-        const val = this.evaluate(expr.args[0]);
-        return { type: 'string', value: val.type };
-      case 'print':
-        if (expr.args.length !== 1) throw new RuntimeError('print() expects 1 argument');
-        const printVal = this.evaluate(expr.args[0]);
-        console.log(this.valueToJS(printVal));
-        return { type: 'null', value: null };
-      case 'keys':
-        if (expr.args.length !== 1) throw new RuntimeError('keys() expects 1 argument');
-        const obj = this.evaluate(expr.args[0]);
-        if (obj.type !== 'object') throw new RuntimeError('keys() expects object');
-        const keys = Array.from(obj.value.keys()).map(k => ({ type: 'string' as const, value: k }));
-        return { type: 'array', value: keys };
-      case 'values':
-        if (expr.args.length !== 1) throw new RuntimeError('values() expects 1 argument');
-        const obj2 = this.evaluate(expr.args[0]);
-        if (obj2.type !== 'object') throw new RuntimeError('values() expects object');
-        const values = Array.from(obj2.value.values());
-        return { type: 'array', value: values };
-      default:
-        throw new RuntimeError(`Unknown builtin function '${expr.name}'`);
+    const builtin = this.builtins[expr.name] || this.customBuiltins.get(expr.name);
+    if (!builtin) {
+      throw new RuntimeError(`Unknown builtin function '${expr.name}'`);
     }
+    const args = expr.args.map(arg => this.evaluate(arg));
+    return builtin(args);
   }
 
-  // TODO: v0.5.0 - Fix Value type arithmetic operations
-  private evaluateBinary(expr: BinaryExpression): any {
+  private evaluateBinary(expr: BinaryExpression): Value {
     const left = this.evaluate(expr.left);
     const right = this.evaluate(expr.right);
     switch (expr.operator) {
       case '+':
-         if (left.type === 'number' && right.type === 'number') {
-           return { type: 'number', value: (left.value as number) + (right.value as number) };
+         if (left.type === ValueType.NUMBER && right.type === ValueType.NUMBER) {
+           return Value.number(left.value + right.value);
          }
-         if (left.type === 'string' || right.type === 'string') {
-           return { type: 'string', value: String(this.valueToJS(left)) + String(this.valueToJS(right)) };
+         if (left.type === ValueType.STRING || right.type === ValueType.STRING) {
+           return Value.string(left.toString() + right.toString());
          }
          throw new RuntimeError('Invalid operands for +');
       case '-':
         this.checkNumbers(left, right, '-');
-        return { type: 'number', value: (left.value as number) - (right.value as number) };
+        return Value.number(left.value - right.value);
       case '*':
         this.checkNumbers(left, right, '*');
-        return { type: 'number', value: (left.value as number) * (right.value as number) };
+        return Value.number(left.value * right.value);
       case '/':
         this.checkNumbers(left, right, '/');
-        return { type: 'number', value: (left.value as number) / (right.value as number) };
+        return Value.number(left.value / right.value);
       case '>':
         this.checkNumbers(left, right, '>');
-        return { type: 'boolean', value: (left.value as number) > (right.value as number) };
+        return Value.boolean(left.value > right.value);
       case '<':
         this.checkNumbers(left, right, '<');
-        return { type: 'boolean', value: (left.value as number) < (right.value as number) };
+        return Value.boolean(left.value < right.value);
       case '>=':
         this.checkNumbers(left, right, '>=');
-        return { type: 'boolean', value: (left.value as number) >= (right.value as number) };
+        return Value.boolean(left.value >= right.value);
       case '<=':
         this.checkNumbers(left, right, '<=');
-        return { type: 'boolean', value: (left.value as number) <= (right.value as number) };
+        return Value.boolean(left.value <= right.value);
       case '==':
-        return { type: 'boolean', value: this.valueToJS(left) === this.valueToJS(right) };
+        return Value.boolean(left.toString() === right.toString()); // simple equality
       case '!=':
-        return { type: 'boolean', value: this.valueToJS(left) !== this.valueToJS(right) };
+        return Value.boolean(left.toString() !== right.toString());
       default:
         throw new Error(`Unknown operator '${expr.operator}'`);
     }
   }
 
   private checkNumbers(left: Value, right: Value, op: string) {
-    if (left.type !== 'number' || right.type !== 'number') {
+    if (left.type !== ValueType.NUMBER || right.type !== ValueType.NUMBER) {
       throw new RuntimeError(`Operator '${op}' requires number operands`);
     }
   }
 
   private evaluateToBoolean(expr: Expression): boolean {
     const val = this.evaluate(expr);
-    if (val.type === 'boolean') return val.value;
+    if (val.type === ValueType.BOOLEAN) return val.value;
      throw new RuntimeError('Condition must evaluate to boolean');
+  }
+
+  private executeFor(stmt: ForStatement): void {
+    const rangeExpr = stmt.range as RangeExpression;
+    if (rangeExpr.type !== 'range') {
+      throw new RuntimeError('For loop range must be a range expression');
+    }
+    const startVal = this.evaluate(rangeExpr.start);
+    const endVal = this.evaluate(rangeExpr.end);
+    if (startVal.type !== ValueType.NUMBER || endVal.type !== ValueType.NUMBER) {
+      throw new RuntimeError('Range start and end must be numbers');
+    }
+    const start = startVal.value;
+    const end = endVal.value;
+    for (let i = start; i <= end; i++) {
+      this.currentEnv().set(stmt.variable, Value.number(i));
+      try {
+        for (const s of stmt.body) {
+          this.executeStatement(s);
+        }
+      } catch (e) {
+        if (e && typeof e === 'object' && 'type' in e) {
+          if ((e as any).type === 'break') break;
+          if ((e as any).type === 'continue') continue;
+        }
+        throw e;
+      }
+    }
+  }
+
+  private evaluateLogical(expr: LogicalExpression): Value {
+    if (expr.operator === 'not') {
+      const right = this.evaluate(expr.right!);
+      return Value.boolean(!right.isTruthy());
+    } else if (expr.operator === 'and') {
+      const left = this.evaluate(expr.left);
+      if (!left.isTruthy()) return Value.boolean(false);
+      const right = this.evaluate(expr.right!);
+      return Value.boolean(right.isTruthy());
+    } else if (expr.operator === 'or') {
+      const left = this.evaluate(expr.left);
+      if (left.isTruthy()) return Value.boolean(true);
+      const right = this.evaluate(expr.right!);
+      return Value.boolean(right.isTruthy());
+    }
+    throw new RuntimeError(`Unknown logical operator '${expr.operator}'`);
+  }
+
+  private evaluateNilSafe(expr: NilSafeExpression): Value {
+    const object = this.evaluate(expr.object);
+    if (object.type === ValueType.NULL) {
+      return Value.null();
+    }
+    if (object.type === ValueType.OBJECT) {
+      if (expr.property in object.value) {
+        return object.value[expr.property];
+      } else {
+        return Value.null();
+      }
+    }
+    throw new RuntimeError('Nil-safe access only on objects');
+  }
+
+  private evaluateRange(expr: RangeExpression): Value {
+    const startVal = this.evaluate(expr.start);
+    const endVal = this.evaluate(expr.end);
+    if (startVal.type !== ValueType.NUMBER || endVal.type !== ValueType.NUMBER) {
+      throw new RuntimeError('Range start and end must be numbers');
+    }
+    const start = startVal.value;
+    const end = endVal.value;
+    const elements: Value[] = [];
+    for (let i = start; i <= end; i++) {
+      elements.push(Value.number(i));
+    }
+    return Value.array(elements);
   }
 
 

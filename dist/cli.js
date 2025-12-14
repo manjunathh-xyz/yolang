@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const fs_1 = require("fs");
-const tokenize_1 = require("./lexer/tokenize");
-const parse_1 = require("./parser/parse");
-const interpreter_1 = require("./runtime/interpreter");
-const reporter_1 = require("./errors/reporter");
+const runtime_1 = require("./runtime/runtime");
 const repl_1 = require("./repl/repl");
-const KexraError_1 = require("./errors/KexraError");
 const VERSION = require('../package.json').version;
 function showHelp() {
     console.log(`Kexra v${VERSION}`);
@@ -23,6 +18,7 @@ function showHelp() {
     console.log('  kex -v                Same as version');
 }
 function main() {
+    var _a;
     const args = process.argv.slice(2);
     if (args.length === 0 || args[0] === 'help' || args[0] === '-h') {
         showHelp();
@@ -36,31 +32,24 @@ function main() {
         (0, repl_1.startRepl)();
         return;
     }
-    if (args[0] === 'run' && args.length === 2) {
+    if (args[0] === 'run' && args.length >= 2) {
         const filePath = args[1];
+        const flags = args.slice(2);
+        const debug = flags.includes('--debug');
+        const trace = flags.includes('--trace');
         console.log(`🚀 Kexra v${VERSION}`);
         console.log(`Running: ${filePath}`);
         console.log('──────────────────────────');
-        let source;
-        try {
-            source = (0, fs_1.readFileSync)(filePath, 'utf-8');
-        }
-        catch (err) {
-            console.error(`❌ CliError: Could not read file '${filePath}'`);
-            process.exit(1);
-        }
-        try {
-            const tokens = (0, tokenize_1.tokenize)(source, filePath);
-            const program = (0, parse_1.parse)(tokens, filePath);
-            const interpreter = new interpreter_1.Interpreter();
-            interpreter.interpret(program);
-        }
-        catch (error) {
-            if (error instanceof KexraError_1.KexraError) {
-                (0, reporter_1.reportError)(error, source);
-            }
-            else {
-                console.error('Unexpected error:', error);
+        const runtime = new runtime_1.KexraRuntime();
+        const result = runtime.runFile(filePath);
+        if (!result.success) {
+            console.error(`❌ Runtime Error`);
+            console.error(result.error);
+            if (debug || trace) {
+                console.error('Stack trace:');
+                (_a = result.stackTrace) === null || _a === void 0 ? void 0 : _a.forEach(frame => {
+                    console.error(`  at ${frame.functionName} (${frame.line}:${frame.column})`);
+                });
             }
             process.exit(1);
         }

@@ -25,11 +25,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.startRepl = void 0;
 const readline = __importStar(require("readline"));
-const tokenize_1 = require("../lexer/tokenize");
-const parse_1 = require("../parser/parse");
-const interpreter_1 = require("../runtime/interpreter");
-const reporter_1 = require("../errors/reporter");
-const KexraError_1 = require("../errors/KexraError");
+const runtime_1 = require("../runtime/runtime");
 function startRepl() {
     console.log(`🎧 Kexra REPL v${require('../../package.json').version}`);
     console.log('Type \'help\' for commands, \'exit\' to quit');
@@ -38,7 +34,7 @@ function startRepl() {
         output: process.stdout,
         prompt: 'yo> '
     });
-    const interpreter = new interpreter_1.Interpreter();
+    const runtime = new runtime_1.KexraRuntime();
     let multiline = '';
     rl.prompt();
     rl.on('line', (input) => {
@@ -57,7 +53,7 @@ function startRepl() {
             return;
         }
         if (trimmed === 'vars') {
-            const vars = interpreter.getEnv();
+            const vars = runtime.getEnv();
             if (Object.keys(vars).length === 0) {
                 console.log('No variables defined.');
             }
@@ -85,18 +81,10 @@ function startRepl() {
             return;
         }
         // Process
-        try {
-            const tokens = (0, tokenize_1.tokenize)(multiline.trim());
-            const program = (0, parse_1.parse)(tokens);
-            interpreter.interpret(program);
-        }
-        catch (error) {
-            if (error instanceof KexraError_1.KexraError) {
-                (0, reporter_1.reportError)(error, multiline.trim());
-            }
-            else {
-                console.error('Unexpected error:', error);
-            }
+        const result = runtime.eval(multiline.trim());
+        if (!result.success) {
+            console.error(`❌ Runtime Error`);
+            console.error(result.error);
         }
         multiline = '';
         rl.setPrompt('yo> ');

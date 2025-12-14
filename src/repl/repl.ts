@@ -1,7 +1,5 @@
 import * as readline from 'readline';
-import { tokenize } from '../lexer/tokenize';
-import { parse } from '../parser/parse';
-import { Interpreter } from '../runtime/interpreter';
+import { KexraRuntime } from '../runtime/runtime';
 import { reportError } from '../errors/reporter';
 import { KexraError } from '../errors/KexraError';
 
@@ -15,7 +13,7 @@ export function startRepl() {
     prompt: 'yo> '
   });
 
-  const interpreter = new Interpreter();
+  const runtime = new KexraRuntime();
   let multiline = '';
 
   rl.prompt();
@@ -36,7 +34,7 @@ export function startRepl() {
       return;
     }
     if (trimmed === 'vars') {
-      const vars = interpreter.getEnv();
+      const vars = runtime.getEnv();
       if (Object.keys(vars).length === 0) {
         console.log('No variables defined.');
       } else {
@@ -65,16 +63,10 @@ export function startRepl() {
     }
 
     // Process
-    try {
-      const tokens = tokenize(multiline.trim());
-      const program = parse(tokens);
-      interpreter.interpret(program);
-    } catch (error) {
-      if (error instanceof KexraError) {
-        reportError(error, multiline.trim());
-      } else {
-        console.error('Unexpected error:', error);
-      }
+    const result = runtime.eval(multiline.trim());
+    if (!result.success) {
+      console.error(`❌ Runtime Error`);
+      console.error(result.error);
     }
 
     multiline = '';

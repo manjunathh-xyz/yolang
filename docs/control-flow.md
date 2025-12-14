@@ -42,25 +42,59 @@ check score >= 90 {
 }
 ```
 
-## Boolean Logic
+## Boolean Values
 
-Kexra considers any non-null value as true:
+Kexra has explicit boolean values:
 
 ```kx
-check 1 {        # true
+set is_adult = true
+set is_minor = false
+
+check is_adult {
+  say "Can vote"
+}
+```
+
+## Boolean Logic
+
+Kexra considers any non-null value as truthy, but you can use explicit booleans:
+
+```kx
+check true {     # true
   say "Runs"
 }
 
-check 0 {        # true (0 is a number)
-  say "Also runs"
+check false {    # false
+  say "Doesn't run"
 }
 
-check "" {       # true (empty string)
-  say "Runs too"
+check 1 {        # true (truthy)
+  say "Also runs"
 }
 
 check null {     # false
   say "Doesn't run"
+}
+```
+
+## Logical Operators
+
+Use `and`, `or`, and `not` for complex conditions:
+
+```kx
+set age = 25
+set has_license = true
+
+check age >= 18 and has_license {
+  say "Can drive"
+}
+
+check age < 18 or not has_license {
+  say "Cannot drive"
+}
+
+check not (age < 18) {
+  say "Is adult"
 }
 ```
 
@@ -88,7 +122,26 @@ check x != y {
 }
 ```
 
-## Loops
+## For Loops
+
+Use `for` with ranges for counting loops:
+
+```kx
+for i in 1..5 {
+  say i
+}
+```
+
+This outputs:
+```
+1
+2
+3
+4
+5
+```
+
+## While Loops
 
 Use `loop` to repeat code while a condition is true:
 
@@ -111,15 +164,29 @@ This outputs:
 
 ## Loop Control
 
-Modify the condition variable to exit:
+Use `break` to exit a loop early:
 
 ```kx
-set count = 10
-loop count > 0 {
-  say count
-  set count = count - 1
+set i = 0
+loop true {
+  check i >= 5 {
+    break
+  }
+  say i
+  set i = i + 1
 }
 say "Done!"
+```
+
+Use `continue` to skip to the next iteration:
+
+```kx
+for i in 1..10 {
+  check i % 2 == 0 {
+    continue
+  }
+  say i  # Only odd numbers
+}
 ```
 
 ## Infinite Loops

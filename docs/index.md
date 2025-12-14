@@ -41,7 +41,9 @@ Kexra is not a production-ready language for large-scale applications. It's desi
 6. **[Control Flow](control-flow.md)** - Making decisions and loops
 7. **[REPL](repl.md)** - Interactive development
 8. **[CLI](cli.md)** - Command-line interface
-9. **[Errors](errors.md)** - Understanding and fixing errors
+9. **[Kexra Runtime](runtime.md)** - Understanding the runtime
+10. **[Kexra Studio](studio.md)** - Web-based IDE
+11. **[Errors](errors.md)** - Understanding and fixing errors
 
 ## Examples
 
@@ -59,7 +61,9 @@ This defines a function and calls it, outputting "Hello, World!".
 
 ## Project Status
 
-Kexra is in active development. See the [roadmap](roadmap.md) for upcoming features.
+Kexra v0.6.0 introduces the Kexra Runtime and Kexra Studio web IDE. The language now supports booleans, logical operators, for-loops with ranges, break/continue, and nil-safe access.
+
+See the [roadmap](roadmap.md) for upcoming features.
 
 ## Community
 

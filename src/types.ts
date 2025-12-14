@@ -17,7 +17,7 @@ export interface Token {
 }
 
 export interface Expression {
-  type: 'literal' | 'variable' | 'binary' | 'call' | 'array' | 'object' | 'index';
+  type: 'literal' | 'variable' | 'binary' | 'logical' | 'call' | 'array' | 'object' | 'index' | 'nil-safe' | 'range';
 }
 
 export interface LiteralExpression extends Expression {
@@ -70,8 +70,27 @@ export interface IndexExpression extends Expression {
   index: Expression;
 }
 
+export interface LogicalExpression extends Expression {
+  type: 'logical';
+  left: Expression;
+  operator: 'and' | 'or' | 'not';
+  right?: Expression; // for not, right is undefined
+}
+
+export interface NilSafeExpression extends Expression {
+  type: 'nil-safe';
+  object: Expression;
+  property: string;
+}
+
+export interface RangeExpression extends Expression {
+  type: 'range';
+  start: Expression;
+  end: Expression;
+}
+
 export interface Statement {
-  type: 'say' | 'set' | 'check' | 'loop' | 'function' | 'return';
+  type: 'say' | 'set' | 'check' | 'loop' | 'for' | 'function' | 'return' | 'break' | 'continue';
 }
 
 export interface SayStatement extends Statement {
@@ -108,6 +127,21 @@ export interface FunctionDeclaration extends Statement {
 export interface ReturnStatement extends Statement {
   type: 'return';
   expression?: Expression;
+}
+
+export interface ForStatement extends Statement {
+  type: 'for';
+  variable: string;
+  range: Expression;
+  body: Statement[];
+}
+
+export interface BreakStatement extends Statement {
+  type: 'break';
+}
+
+export interface ContinueStatement extends Statement {
+  type: 'continue';
 }
 
 export type Program = Statement[];

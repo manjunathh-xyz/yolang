@@ -31,10 +31,16 @@ class Parser {
                     return this.parseCheck();
                 case 'loop':
                     return this.parseLoop();
+                case 'for':
+                    return this.parseFor();
                 case 'fn':
                     return this.parseFunction();
                 case 'return':
                     return this.parseReturn();
+                case 'break':
+                    return this.parseBreak();
+                case 'continue':
+                    return this.parseContinue();
                 default:
                     throw this.error(token, `Unexpected keyword '${token.value}'`);
             }
@@ -101,6 +107,25 @@ class Parser {
         this.expectNewline();
         return { type: 'return', expression };
     }
+    parseFor() {
+        this.advance(); // 'for'
+        const variable = this.consume('IDENT', 'Expected variable name').value;
+        this.consume('KEYWORD', 'Expected in', 'in');
+        const range = this.parseExpression();
+        this.consume('BLOCK_START', 'Expected {');
+        const body = this.parseBlock();
+        return { type: 'for', variable, range, body };
+    }
+    parseBreak() {
+        this.advance(); // 'break'
+        this.expectNewline();
+        return { type: 'break' };
+    }
+    parseContinue() {
+        this.advance(); // 'continue'
+        this.expectNewline();
+        return { type: 'continue' };
+    }
     parseBlock() {
         const statements = [];
         while (!this.check('BLOCK_END') && !this.isAtEnd()) {
@@ -114,7 +139,16 @@ class Parser {
         return statements;
     }
     parseExpression() {
-        return this.parseEquality();
+        return this.parseLogical();
+    }
+    parseLogical() {
+        let expr = this.parseEquality();
+        while (this.match('KEYWORD', 'and', 'or')) {
+            const operator = this.previous().value;
+            const right = this.parseEquality();
+            expr = { type: 'logical', left: expr, operator, right };
+        }
+        return expr;
     }
     parseEquality() {
         let expr = this.parseComparison();
@@ -135,11 +169,20 @@ class Parser {
         return expr;
     }
     parseTerm() {
-        let expr = this.parseFactor();
+        let expr = this.parseRange();
         while (this.match('OPERATOR', '+', '-')) {
             const operator = this.previous().value;
-            const right = this.parseFactor();
+            const right = this.parseRange();
             expr = { type: 'binary', left: expr, operator, right };
+        }
+        return expr;
+    }
+    parseRange() {
+        let expr = this.parseFactor();
+        if (this.match('OPERATOR', '..')) {
+            const start = expr;
+            const end = this.parseFactor();
+            expr = { type: 'range', start, end };
         }
         return expr;
     }
@@ -153,7 +196,11 @@ class Parser {
         return expr;
     }
     parseUnary() {
-        // No unary operators yet
+        if (this.match('KEYWORD', 'not')) {
+            const operator = 'not';
+            const right = this.parseUnary();
+            return { type: 'logical', operator, right };
+        }
         return this.parsePrimary();
     }
     // TODO: v0.5.0 - Add parsing for arrays [], objects {}, and indexing []
@@ -217,6 +264,12 @@ class Parser {
             const index = this.parseExpression();
             this.consume('OPERATOR', 'Expected ]', ']');
             expr = { type: 'index', object: expr, index };
+        }
+        // Handle nil-safe access
+        if (this.match('OPERATOR', '?')) {
+            this.consume('OPERATOR', 'Expected . after ?', '.');
+            const property = this.consume('IDENT', 'Expected property name').value;
+            expr = { type: 'nil-safe', object: expr, property };
         }
         // Handle function calls
         if (this.match('OPERATOR', '(')) {

@@ -101,7 +101,21 @@ export function tokenize(source: string, filePath?: string): Token[] {
       continue;
     }
 
-    if ('+-*/><=(),'.includes(char)) {
+    if (char === '?' ) {
+      tokens.push({ type: 'OPERATOR', value: '?', line, column });
+      pos++;
+      column++;
+      continue;
+    }
+
+    if (char === '.' && pos + 1 < source.length && source[pos + 1] === '.') {
+      tokens.push({ type: 'OPERATOR', value: '..', line, column });
+      pos += 2;
+      column += 2;
+      continue;
+    }
+
+    if ('+-*/><=(),.'.includes(char)) {
       tokens.push({ type: 'OPERATOR', value: char, line, column });
       pos++;
       column++;

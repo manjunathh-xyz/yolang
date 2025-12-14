@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
 import { readFileSync } from 'fs';
-import { tokenize } from './lexer/tokenize';
-import { parse } from './parser/parse';
-import { Interpreter } from './runtime/interpreter';
+import { KexraRuntime } from './runtime/runtime';
 import { reportError } from './errors/reporter';
 import { startRepl } from './repl/repl';
 import { CliError } from './errors/CliError';
@@ -43,30 +41,27 @@ function main() {
     return;
   }
 
-  if (args[0] === 'run' && args.length === 2) {
+  if (args[0] === 'run' && args.length >= 2) {
     const filePath = args[1];
+    const flags = args.slice(2);
+    const debug = flags.includes('--debug');
+    const trace = flags.includes('--trace');
+
     console.log(`🚀 Kexra v${VERSION}`);
     console.log(`Running: ${filePath}`);
     console.log('──────────────────────────');
 
-    let source: string;
-    try {
-      source = readFileSync(filePath, 'utf-8');
-    } catch (err) {
-      console.error(`❌ CliError: Could not read file '${filePath}'`);
-      process.exit(1);
-    }
+    const runtime = new KexraRuntime();
+    const result = runtime.runFile(filePath);
 
-    try {
-      const tokens = tokenize(source, filePath);
-      const program = parse(tokens, filePath);
-      const interpreter = new Interpreter();
-      interpreter.interpret(program);
-    } catch (error) {
-      if (error instanceof KexraError) {
-        reportError(error, source);
-      } else {
-        console.error('Unexpected error:', error);
+    if (!result.success) {
+      console.error(`❌ Runtime Error`);
+      console.error(result.error);
+      if (debug || trace) {
+        console.error('Stack trace:');
+        result.stackTrace?.forEach(frame => {
+          console.error(`  at ${frame.functionName} (${frame.line}:${frame.column})`);
+        });
       }
       process.exit(1);
     }
