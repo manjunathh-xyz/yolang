@@ -2,9 +2,9 @@ name: CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
   build-and-test:
@@ -18,3 +18,5 @@ jobs:
       - run: npm run build
       - run: node dist/cli.js run examples/hello.kx
       - run: node dist/cli.js run examples/test.kx
+      - name: Validate packages
+        run: node scripts/validate-packages.js

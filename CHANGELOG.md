@@ -13,6 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced a minimal landing page
 - Simplified project public surface
 
+## [0.9.8] - 2025-12-14
+
+### Changed
+
+- Removed backend registry and publishing system
+- Switched to GitHub-based package registry
+- Packages are now contributed via pull requests
+
 ## [0.9.7] - 2025-12-14
 
 ### Fixed

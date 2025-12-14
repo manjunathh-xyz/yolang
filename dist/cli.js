@@ -19,7 +19,6 @@ function showHelp() {
     console.log('  kex list              List installed packages');
     console.log('  kex fmt               Format Kexra files');
     console.log('  kex test              Run tests');
-    console.log('  kex publish           Publish a package');
     console.log('  kex version           Show version');
     console.log('  kex help              Show help');
     console.log('');
@@ -119,10 +118,6 @@ function main() {
         }
         return;
     }
-    if (args[0] === 'publish') {
-        pkgManager.publish();
-        return;
-    }
     if (args[0] === 'run' && args.length >= 2) {
         const filePath = args[1];
         const flags = args.slice(2);
@@ -143,8 +138,12 @@ function main() {
         runtime.on('error', (data) => {
             console.error(`❌ ${data.message}`);
         });
+        runtime.on('output', (data) => {
+            console.log(data.value);
+        });
         const result = runtime.runFile(filePath);
         if (!result.success) {
+            console.error(`❌ ${result.error}`);
             if (debug) {
                 console.error('Stack trace:');
                 (_a = result.stackTrace) === null || _a === void 0 ? void 0 : _a.forEach((frame) => {

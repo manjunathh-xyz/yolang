@@ -122,6 +122,32 @@ export class KexraRuntime {
     }
   }
 
+  loadModuleFromFile(name: string, path: string): void {
+    try {
+      const source = fs.readFileSync(path, 'utf-8');
+      const tokens = tokenize(source);
+      const program = parse(tokens);
+      // Run in a new interpreter instance to isolate exports
+      const moduleInterpreter = new Interpreter(
+        new CallStack(),
+        builtins,
+        this.customBuiltins,
+        this.options,
+        this.emit.bind(this)
+      );
+      moduleInterpreter.interpret(program);
+      // Get exports from 'current' module
+      const exports = moduleInterpreter.getModule('current');
+      if (exports) {
+        this.interpreter.loadModule(name, exports);
+      }
+    } catch (error) {
+      throw new RuntimeError(
+        `Failed to load module '${name}': ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
+    }
+  }
+
   eval(source: string): RuntimeResult {
     try {
       const tokens = tokenize(source);

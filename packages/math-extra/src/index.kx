@@ -1,0 +1,12 @@
+fn sin(x) {
+  return math.sin(x)
+}
+export sin
+
+fn cos(x) {
+  return math.cos(x)
+}
+export cos
+
+export e math.e
+

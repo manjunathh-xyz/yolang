@@ -36,6 +36,10 @@ import {
 import { RuntimeError } from '../errors/RuntimeError';
 import { Value, ValueType, RuntimeFn } from './values';
 import { CallStack } from './stack';
+import { tokenize } from '../lexer/tokenize';
+import { parse } from '../parser/parse';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export interface RuntimeOptions {
   debug?: boolean;
@@ -76,6 +80,10 @@ export class Interpreter {
 
   loadModule(name: string, exports: Map<string, Value>): void {
     this.modules.set(name, exports);
+  }
+
+  getModule(name: string): Map<string, Value> | undefined {
+    return this.modules.get(name);
   }
 
   private valueToJS(value: Value): any {
@@ -125,7 +133,7 @@ export class Interpreter {
       case 'say':
         const sayStmt = stmt as SayStatement;
         const value = this.evaluate(sayStmt.expression);
-        console.log(this.valueToJS(value));
+        this.emit('output', { value: this.valueToJS(value) });
         break;
       case 'set':
         const setStmt = stmt as SetStatement;
@@ -465,9 +473,9 @@ export class Interpreter {
   }
 
   private executeFor(stmt: ForStatement): void {
-    const rangeExpr = stmt.range as RangeExpression;
+    const rangeExpr = stmt.iterable as RangeExpression;
     if (rangeExpr.type !== 'range') {
-      throw new RuntimeError('For loop range must be a range expression');
+      throw new RuntimeError('For loop iterable must be a range expression');
     }
     const startVal = this.evaluate(rangeExpr.start);
     const endVal = this.evaluate(rangeExpr.end);
@@ -497,12 +505,12 @@ export class Interpreter {
       const right = this.evaluate(expr.right!);
       return Value.boolean(!right.isTruthy());
     } else if (expr.operator === 'and') {
-      const left = this.evaluate(expr.left);
+      const left = this.evaluate(expr.left!);
       if (!left.isTruthy()) return Value.boolean(false);
       const right = this.evaluate(expr.right!);
       return Value.boolean(right.isTruthy());
     } else if (expr.operator === 'or') {
-      const left = this.evaluate(expr.left);
+      const left = this.evaluate(expr.left!);
       if (left.isTruthy()) return Value.boolean(true);
       const right = this.evaluate(expr.right!);
       return Value.boolean(right.isTruthy());
@@ -634,8 +642,8 @@ export class Interpreter {
         return;
       }
     }
-    if (stmt.defaultCase) {
-      for (const s of stmt.defaultCase) {
+    if (stmt.defaultBody) {
+      for (const s of stmt.defaultBody) {
         this.executeStatement(s);
       }
     }
@@ -644,17 +652,11 @@ export class Interpreter {
   private executeImport(stmt: ImportStatement): void {
     // For now, assume modules are loaded externally
     // In full implementation, this would load the module file
-    const moduleExports = this.modules.get(stmt.module);
+    const moduleExports = this.modules.get(stmt.name);
     if (!moduleExports) {
-      throw new RuntimeError(`Module '${stmt.module}' not found`);
+      throw new RuntimeError(`Module '${stmt.name}' not found`);
     }
-    for (const name of stmt.names) {
-      if (moduleExports.has(name)) {
-        this.currentEnv().set(name, moduleExports.get(name)!);
-      } else {
-        throw new RuntimeError(`Export '${name}' not found in module '${stmt.module}'`);
-      }
-    }
+    this.currentEnv().set(stmt.name, new Value(ValueType.OBJECT, moduleExports));
   }
 
   private executeExport(stmt: ExportStatement): void {
@@ -693,29 +695,30 @@ export class Interpreter {
 
   private loadUserModule(name: string): void {
     console.log(`Loading module ${name}`);
-    const exports = new Map<string, Value>();
-    // For now, hardcode for math-extra
-    if (name === 'math-extra') {
-      exports.set(
-        'sin',
-        Value.function((args) => {
-          if (args.length !== 1 || args[0].type !== 'number')
-            throw new Error('sin expects one number');
-          return Value.number(Math.sin(args[0].value));
-        })
-      );
-      exports.set(
-        'cos',
-        Value.function((args) => {
-          if (args.length !== 1 || args[0].type !== 'number')
-            throw new Error('cos expects one number');
-          return Value.number(Math.cos(args[0].value));
-        })
-      );
-      exports.set('e', Value.number(Math.E));
-    } else {
-      throw new RuntimeError(`Module '${name}' not found`);
+    const modulePath = path.join('kex_modules', name, 'src', 'index.kx');
+    if (!fs.existsSync(modulePath)) {
+      throw new RuntimeError(`Module '${name}' not found at ${modulePath}`);
     }
-    this.modules.set(name, exports);
+    // Load and run the module file
+    const source = fs.readFileSync(modulePath, 'utf-8');
+    const tokens = tokenize(source);
+    const program = parse(tokens, modulePath);
+    // Save current 'current' module
+    const savedCurrent = this.modules.get('current');
+    // Run the module
+    this.interpret(program);
+    // Get the exports from 'current' module
+    const exports = this.modules.get('current');
+    if (exports) {
+      this.modules.set(name, new Map(exports));
+    } else {
+      this.modules.set(name, new Map());
+    }
+    // Restore or clear 'current'
+    if (savedCurrent) {
+      this.modules.set('current', savedCurrent);
+    } else {
+      this.modules.delete('current');
+    }
   }
 }

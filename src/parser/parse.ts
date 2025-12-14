@@ -9,7 +9,6 @@ import {
   CheckStatement,
   LoopStatement,
   ForStatement,
-  UseStatement,
   FunctionDeclaration,
   ReturnStatement,
   BreakStatement,
@@ -18,15 +17,16 @@ import {
   SwitchStatement,
   ImportStatement,
   ExportStatement,
+  UseStatement,
   Expression,
   LiteralExpression,
   VariableExpression,
   BinaryExpression,
-  LogicalExpression,
   CallExpression,
   ArrayExpression,
   ObjectExpression,
   IndexExpression,
+  LogicalExpression,
   NilSafeExpression,
   RangeExpression,
   TernaryExpression,
@@ -34,8 +34,8 @@ import {
   OptionalChainExpression,
   AwaitExpression,
   UnaryExpression,
+  Parameter,
 } from '../types';
-import { SyntaxError } from '../errors/SyntaxError';
 
 export class Parser {
   private tokens: Token[];
@@ -50,233 +50,190 @@ export class Parser {
   parse(): Program {
     const statements: Statement[] = [];
     while (!this.isAtEnd()) {
-      if (this.peek().type === 'NEWLINE') {
-        this.advance();
-        continue;
-      }
       statements.push(this.parseStatement());
     }
     return statements;
   }
 
-  private parseStatement(): Statement {
-    const token = this.peek();
-    if (token.type === 'KEYWORD') {
-      switch (token.value) {
-        case 'say':
-          return this.parseSay();
-        case 'set':
-          return this.parseSet();
-        case 'const':
-          return this.parseConst();
-        case 'check':
-          return this.parseCheck();
-        case 'loop':
-          return this.parseLoop();
-        case 'for':
-          return this.parseFor();
-        case 'fn':
-          return this.parseFunction();
-        case 'return':
-          return this.parseReturn();
-        case 'break':
-          return this.parseBreak();
-        case 'continue':
-          return this.parseContinue();
-        case 'try':
-          return this.parseTry();
-        case 'switch':
-          return this.parseSwitch();
-        case 'import':
-          return this.parseImport();
-        case 'export':
-          return this.parseExport();
-        case 'use':
-          return this.parseUse();
-        default:
-          throw this.error(token, `Unexpected keyword '${token.value}'`);
-      }
+  public parseStatement(): Statement {
+    this.skipNewlines();
+    if (this.match('KEYWORD', 'say')) {
+      return this.parseSay();
     }
-    throw this.error(token, 'Expected statement');
+    if (this.match('KEYWORD', 'set')) {
+      return this.parseSet();
+    }
+    if (this.match('KEYWORD', 'const')) {
+      return this.parseConst();
+    }
+    if (this.match('KEYWORD', 'check')) {
+      return this.parseCheck();
+    }
+    if (this.match('KEYWORD', 'loop')) {
+      return this.parseLoop();
+    }
+    if (this.match('KEYWORD', 'for')) {
+      return this.parseFor();
+    }
+    if (this.match('KEYWORD', 'fn')) {
+      return this.parseFunction();
+    }
+    if (this.match('KEYWORD', 'return')) {
+      return this.parseReturn();
+    }
+    if (this.match('KEYWORD', 'break')) {
+      return this.parseBreak();
+    }
+    if (this.match('KEYWORD', 'continue')) {
+      return this.parseContinue();
+    }
+    if (this.match('KEYWORD', 'try')) {
+      return this.parseTry();
+    }
+    if (this.match('KEYWORD', 'switch')) {
+      return this.parseSwitch();
+    }
+    if (this.match('KEYWORD', 'import')) {
+      return this.parseImport();
+    }
+    if (this.match('KEYWORD', 'export')) {
+      return this.parseExport();
+    }
+    if (this.match('KEYWORD', 'use')) {
+      return this.parseUse();
+    }
+    throw this.error(this.peek(), 'Expected statement');
   }
 
   private parseSay(): SayStatement {
-    this.advance(); // consume 'say'
-    const expr = this.parseExpression();
+    const expression = this.parseExpression();
     this.expectNewline();
-    return { type: 'say', expression: expr };
+    return { type: 'say', expression };
   }
 
   private parseSet(): SetStatement {
-    this.advance(); // 'set'
-    const name = this.consume('IDENT', 'Expected variable name').value;
-    const opToken = this.consume('OPERATOR', 'Expected =');
-    if (opToken.value !== '=') {
-      throw new SyntaxError(
-        'Expected =',
-        this.filePath,
-        opToken.line,
-        opToken.column,
-        'Use "=" for assignment, not "=="'
-      );
-    }
-    const expr = this.parseExpression();
+    const name = this.expectIdentifier('Expected variable name').value;
+    this.expect('OPERATOR', '=', 'Expected =');
+    const expression = this.parseExpression();
     this.expectNewline();
-    return { type: 'set', name, expression: expr };
+    return { type: 'set', name, expression };
+  }
+
+  private parseConst(): ConstStatement {
+    const name = this.expectIdentifier('Expected variable name').value;
+    this.expect('OPERATOR', '=', 'Expected =');
+    const expression = this.parseExpression();
+    this.expectNewline();
+    return { type: 'const', name, expression };
   }
 
   private parseCheck(): CheckStatement {
-    this.advance(); // 'check'
     const condition = this.parseExpression();
-    this.consume('BLOCK_START', 'Expected {');
+    this.expect('BLOCK_START', 'Expected {');
     const body = this.parseBlock();
     let elseBody: Statement[] | undefined;
     if (this.match('KEYWORD', 'else')) {
-      this.consume('BLOCK_START', 'Expected { after else');
+      this.expect('BLOCK_START', 'Expected {');
       elseBody = this.parseBlock();
     }
     return { type: 'check', condition, body, elseBody };
   }
 
   private parseLoop(): LoopStatement {
-    this.advance(); // 'loop'
     const condition = this.parseExpression();
-    this.consume('BLOCK_START', 'Expected {');
+    this.expect('BLOCK_START', 'Expected {');
     const body = this.parseBlock();
     return { type: 'loop', condition, body };
   }
 
+  private parseFor(): ForStatement {
+    const variable = this.expectIdentifier('Expected variable name').value;
+    this.expect('KEYWORD', 'in', 'Expected in');
+    const iterable = this.parseExpression();
+    this.expect('BLOCK_START', 'Expected {');
+    const body = this.parseBlock();
+    return { type: 'for', variable, iterable, body };
+  }
+
   private parseFunction(): FunctionDeclaration {
-    this.advance(); // 'fn'
-    const name = this.consume('IDENT', 'Expected function name').value;
-    this.consume('OPERATOR', 'Expected (', '(');
-    const params: { name: string; defaultValue?: Expression }[] = [];
-    let restParam: string | undefined;
+    const name = this.expectIdentifier('Expected function name').value;
+    this.expect('OPERATOR', '(', 'Expected (');
+    const params: Parameter[] = [];
     if (!this.check('OPERATOR', ')')) {
       do {
-        const paramName = this.consume('IDENT', 'Expected parameter name').value;
-        let defaultValue: Expression | undefined;
-        if (this.match('OPERATOR', '=')) {
-          defaultValue = this.parseExpression();
-        }
-        params.push({ name: paramName, defaultValue });
+        const paramName = this.expectIdentifier('Expected parameter name').value;
+        params.push({ name: paramName });
       } while (this.match('OPERATOR', ','));
-      if (this.match('OPERATOR', '...')) {
-        restParam = this.consume('IDENT', 'Expected rest parameter name').value;
-      }
     }
-    this.consume('OPERATOR', 'Expected )', ')');
-    this.consume('BLOCK_START', 'Expected {');
+    this.expect('OPERATOR', ')', 'Expected )');
+    this.expect('BLOCK_START', 'Expected {');
     const body = this.parseBlock();
-    return { type: 'function', name, params, restParam, body };
+    return { type: 'function', name, params, body };
   }
 
   private parseReturn(): ReturnStatement {
-    this.advance(); // 'return'
     let expression: Expression | undefined;
-    if (!this.check('NEWLINE') && !this.isAtEnd()) {
+    if (!this.checkNewline()) {
       expression = this.parseExpression();
     }
     this.expectNewline();
     return { type: 'return', expression };
   }
 
-  private parseFor(): ForStatement {
-    this.advance(); // 'for'
-    const variable = this.consume('IDENT', 'Expected variable name').value;
-    this.consume('KEYWORD', 'Expected in', 'in');
-    const range = this.parseExpression();
-    this.consume('BLOCK_START', 'Expected {');
-    const body = this.parseBlock();
-    return { type: 'for', variable, range, body };
-  }
-
   private parseBreak(): BreakStatement {
-    this.advance(); // 'break'
     this.expectNewline();
     return { type: 'break' };
   }
 
   private parseContinue(): ContinueStatement {
-    this.advance(); // 'continue'
     this.expectNewline();
     return { type: 'continue' };
   }
 
-  private parseConst(): ConstStatement {
-    this.advance(); // 'const'
-    const name = this.consume('IDENT', 'Expected variable name').value;
-    this.consume('OPERATOR', 'Expected =', '=');
-    const expression = this.parseExpression();
-    this.expectNewline();
-    return { type: 'const', name, expression };
-  }
-
   private parseTry(): TryStatement {
-    this.advance(); // 'try'
-    this.consume('BLOCK_START', 'Expected { after try');
+    this.expect('BLOCK_START', 'Expected {');
     const tryBody = this.parseBlock();
-    let catchParam: string | undefined;
-    let catchBody: Statement[] | undefined;
-    if (this.match('KEYWORD', 'catch')) {
-      this.consume('OPERATOR', 'Expected ( after catch', '(');
-      catchParam = this.consume('IDENT', 'Expected catch parameter').value;
-      this.consume('OPERATOR', 'Expected )', ')');
-      this.consume('BLOCK_START', 'Expected { after catch');
-      catchBody = this.parseBlock();
-    }
+    this.expect('KEYWORD', 'catch', 'Expected catch');
+    const catchParam = this.expectIdentifier('Expected catch parameter').value;
+    this.expect('BLOCK_START', 'Expected {');
+    const catchBody = this.parseBlock();
     let finallyBody: Statement[] | undefined;
     if (this.match('KEYWORD', 'finally')) {
-      this.consume('BLOCK_START', 'Expected { after finally');
+      this.expect('BLOCK_START', 'Expected {');
       finallyBody = this.parseBlock();
     }
     return { type: 'try', tryBody, catchParam, catchBody, finallyBody };
   }
 
   private parseSwitch(): SwitchStatement {
-    this.advance(); // 'switch'
     const expression = this.parseExpression();
-    this.consume('BLOCK_START', 'Expected { after switch');
+    this.expect('BLOCK_START', 'Expected {');
     const cases: { value: Expression; body: Statement[] }[] = [];
-    let defaultCase: Statement[] | undefined;
-    while (!this.check('BLOCK_END') && !this.isAtEnd()) {
-      if (this.match('KEYWORD', 'case')) {
-        const value = this.parseExpression();
-        this.consume('BLOCK_START', 'Expected { after case value');
-        const body = this.parseBlock();
-        cases.push({ value, body });
-      } else if (this.match('KEYWORD', 'default')) {
-        this.consume('BLOCK_START', 'Expected { after default');
-        defaultCase = this.parseBlock();
-      } else {
-        throw this.error(this.peek(), 'Expected case or default in switch');
-      }
+    while (this.match('KEYWORD', 'case')) {
+      const value = this.parseExpression();
+      this.expect('OPERATOR', ':', 'Expected :');
+      const body = this.parseBlock();
+      cases.push({ value, body });
     }
-    this.consume('BLOCK_END', 'Expected } after switch');
-    return { type: 'switch', expression, cases, defaultCase };
+    let defaultBody: Statement[] | undefined;
+    if (this.match('KEYWORD', 'default')) {
+      this.expect('OPERATOR', ':', 'Expected :');
+      defaultBody = this.parseBlock();
+    }
+    this.expect('BLOCK_END', 'Expected }');
+    return { type: 'switch', expression, cases, defaultBody };
   }
 
   private parseImport(): ImportStatement {
-    this.advance(); // 'import'
-    this.consume('OPERATOR', 'Expected { after import', '{');
-    const names: string[] = [];
-    if (!this.check('OPERATOR', '}')) {
-      do {
-        names.push(this.consume('IDENT', 'Expected identifier').value);
-      } while (this.match('OPERATOR', ','));
-    }
-    this.consume('OPERATOR', 'Expected }', '}');
-    this.consume('KEYWORD', 'Expected from', 'from');
-    const module = this.consume('STRING', 'Expected module path').value;
+    const name = this.expectIdentifier('Expected module name').value;
     this.expectNewline();
-    return { type: 'import', names, module };
+    return { type: 'import', name };
   }
 
   private parseExport(): ExportStatement {
-    this.advance(); // 'export'
-    const name = this.expectIdentifier('Expected identifier after export').value;
+    const name = this.expectIdentifier('Expected export name').value;
     let expression: Expression | undefined;
-    if (this.peek().type !== 'NEWLINE') {
+    if (!this.checkNewline()) {
       expression = this.parseExpression();
     }
     this.expectNewline();
@@ -284,10 +241,9 @@ export class Parser {
   }
 
   private parseUse(): UseStatement {
-    this.advance(); // 'use'
-    const module = this.expectIdentifier('Expected module name after use').value;
+    const module = this.expectIdentifier('Expected module name').value;
     this.skipNewlines();
-    this.expect('BLOCK_START', 'Expected { after module name');
+    this.expect('BLOCK_START', 'Expected {');
     this.skipNewlines();
     const imports: string[] = [];
     while (!this.check('BLOCK_END')) {
@@ -307,13 +263,9 @@ export class Parser {
   private parseBlock(): Statement[] {
     const statements: Statement[] = [];
     while (!this.check('BLOCK_END') && !this.isAtEnd()) {
-      if (this.peek().type === 'NEWLINE') {
-        this.advance();
-        continue;
-      }
       statements.push(this.parseStatement());
     }
-    this.consume('BLOCK_END', 'Expected }');
+    this.expect('BLOCK_END', 'Expected }');
     return statements;
   }
 
@@ -322,140 +274,128 @@ export class Parser {
   }
 
   private parseTernary(): Expression {
-    const expr = this.parseNilCoalescing();
+    let expression = this.parseLogical();
     if (this.match('OPERATOR', '?')) {
       const thenBranch = this.parseExpression();
-      this.consume('OPERATOR', 'Expected : in ternary', ':');
-      const elseBranch = this.parseTernary(); // right associative
-      return { type: 'ternary', condition: expr, thenBranch, elseBranch } as TernaryExpression;
+      this.expect('OPERATOR', ':', 'Expected :');
+      const elseBranch = this.parseTernary();
+      expression = { type: 'ternary', condition: expression, thenBranch, elseBranch };
     }
-    return expr;
-  }
-
-  private parseNilCoalescing(): Expression {
-    const expr = this.parseLogical();
-    if (this.match('OPERATOR', '??')) {
-      const right = this.parseNilCoalescing();
-      return { type: 'nil-coalescing', left: expr, right } as NilCoalescingExpression;
-    }
-    return expr;
+    return expression;
   }
 
   private parseLogical(): Expression {
-    let expr = this.parseEquality();
-    while (this.match('KEYWORD', 'and', 'or')) {
-      const operator = this.previous().value as 'and' | 'or';
+    let expression = this.parseEquality();
+    while (this.match('KEYWORD', 'and') || this.match('KEYWORD', 'or')) {
+      const operator = this.previous().value;
       const right = this.parseEquality();
-      expr = { type: 'logical', left: expr, operator, right } as LogicalExpression;
+      expression = { type: 'logical', operator, left: expression, right };
     }
-    return expr;
+    return expression;
   }
 
   private parseEquality(): Expression {
-    let expr = this.parseComparison();
-    while (this.match('OPERATOR', '==', '!=')) {
+    let expression = this.parseComparison();
+    while (this.match('OPERATOR', '==') || this.match('OPERATOR', '!=')) {
       const operator = this.previous().value;
       const right = this.parseComparison();
-      expr = { type: 'binary', left: expr, operator, right } as BinaryExpression;
+      expression = { type: 'binary', operator, left: expression, right };
     }
-    return expr;
+    return expression;
   }
 
   private parseComparison(): Expression {
-    let expr = this.parseTerm();
-    while (this.match('OPERATOR', '>', '<', '>=', '<=')) {
+    let expression = this.parseTerm();
+    while (
+      this.match('OPERATOR', '>') ||
+      this.match('OPERATOR', '>=') ||
+      this.match('OPERATOR', '<') ||
+      this.match('OPERATOR', '<=')
+    ) {
       const operator = this.previous().value;
       const right = this.parseTerm();
-      expr = { type: 'binary', left: expr, operator, right } as BinaryExpression;
+      expression = { type: 'binary', operator, left: expression, right };
     }
-    return expr;
+    return expression;
   }
 
   private parseTerm(): Expression {
-    let expr = this.parseRange();
-    while (this.match('OPERATOR', '+', '-')) {
+    let expression = this.parseFactor();
+    while (this.match('OPERATOR', '+') || this.match('OPERATOR', '-')) {
       const operator = this.previous().value;
-      const right = this.parseRange();
-      expr = { type: 'binary', left: expr, operator, right } as BinaryExpression;
+      const right = this.parseFactor();
+      expression = { type: 'binary', operator, left: expression, right };
     }
-    return expr;
-  }
-
-  private parseRange(): Expression {
-    let expr = this.parseFactor();
-    if (this.match('OPERATOR', '..')) {
-      const start = expr;
-      const end = this.parseFactor();
-      expr = { type: 'range', start, end } as RangeExpression;
-    }
-    return expr;
+    return expression;
   }
 
   private parseFactor(): Expression {
-    let expr = this.parseUnary();
-    while (this.match('OPERATOR', '*', '/')) {
+    let expression = this.parseUnary();
+    while (this.match('OPERATOR', '*') || this.match('OPERATOR', '/')) {
       const operator = this.previous().value;
       const right = this.parseUnary();
-      expr = { type: 'binary', left: expr, operator, right } as BinaryExpression;
+      expression = { type: 'binary', operator, left: expression, right };
     }
-    return expr;
+    return expression;
   }
 
   private parseUnary(): Expression {
     if (this.match('KEYWORD', 'not')) {
       const operator = 'not';
       const right = this.parseUnary();
-      return { type: 'logical', operator, right } as LogicalExpression;
+      return { type: 'logical', operator, right };
     }
     if (this.match('OPERATOR', '-')) {
       const operator = '-';
       const right = this.parseUnary();
-      return { type: 'unary', operator, right } as UnaryExpression;
+      return { type: 'unary', operator, right };
     }
     if (this.match('KEYWORD', 'await')) {
       const expression = this.parseUnary();
-      return { type: 'await', expression } as AwaitExpression;
+      return { type: 'await', expression };
     }
     return this.parsePrimary();
   }
 
   private parsePrimary(): Expression {
+    if (this.match('NUMBER')) {
+      return { type: 'literal', valueType: 'number', value: parseFloat(this.previous().value) };
+    }
+    if (this.match('STRING')) {
+      return { type: 'literal', valueType: 'string', value: this.previous().value.slice(1, -1) };
+    }
+    if (this.match('KEYWORD', 'true')) {
+      return { type: 'literal', valueType: 'boolean', value: true };
+    }
+    if (this.match('KEYWORD', 'false')) {
+      return { type: 'literal', valueType: 'boolean', value: false };
+    }
+    if (this.match('KEYWORD', 'null')) {
+      return { type: 'literal', valueType: 'null', value: null };
+    }
     if (this.match('ARRAY_START')) {
       return this.parseArray();
     }
-    if (this.match('NUMBER')) {
-      return {
-        type: 'literal',
-        valueType: 'number',
-        value: parseFloat(this.previous().value),
-      } as LiteralExpression;
-    }
-    if (this.match('STRING')) {
-      return {
-        type: 'literal',
-        valueType: 'string',
-        value: this.previous().value,
-      } as LiteralExpression;
-    }
-    if (this.match('KEYWORD', 'true')) {
-      return { type: 'literal', valueType: 'boolean', value: true } as LiteralExpression;
-    }
-    if (this.match('KEYWORD', 'false')) {
-      return { type: 'literal', valueType: 'boolean', value: false } as LiteralExpression;
-    }
-    if (this.match('OPERATOR', '[')) {
-      return this.parseArray();
-    }
-    if (this.match('OPERATOR', '{')) {
+    if (this.match('BLOCK_START')) {
       return this.parseObject();
     }
     if (this.match('IDENT')) {
-      return this.parseIdentifierOrCall();
+      const name = this.previous().value;
+      if (this.match('OPERATOR', '(')) {
+        return this.parseCall(name);
+      }
+      if (this.match('OPERATOR', '[')) {
+        return this.parseIndex(name);
+      }
+      if (this.match('OPERATOR', '?.')) {
+        return this.parseOptionalChain(name);
+      }
+      return { type: 'variable', name };
     }
     if (this.match('OPERATOR', '(')) {
-      const expr = this.parseExpression();
-      this.consume('OPERATOR', 'Expected )', ')');
-      return expr;
+      const expression = this.parseExpression();
+      this.expect('OPERATOR', ')', 'Expected )');
+      return expression;
     }
     throw this.error(this.peek(), 'Expected expression');
   }
@@ -465,75 +405,71 @@ export class Parser {
     if (!this.check('ARRAY_END')) {
       do {
         elements.push(this.parseExpression());
+        if (!this.check('ARRAY_END')) {
+          this.expect('OPERATOR', ',', 'Expected , or ]');
+        }
       } while (this.match('OPERATOR', ','));
     }
-    this.consume('ARRAY_END', 'Expected ]');
+    this.expect('ARRAY_END', 'Expected ]');
     return { type: 'array', elements };
-  }
-    this.consume('OPERATOR', 'Expected ]', ']');
-    return { type: 'array', elements } as ArrayExpression;
   }
 
   private parseObject(): ObjectExpression {
     const properties: { key: string; value: Expression }[] = [];
-    if (!this.check('OPERATOR', '}')) {
+    if (!this.check('BLOCK_END')) {
       do {
-        const key = this.consume('IDENT', 'Expected property name').value;
-        this.consume('OPERATOR', 'Expected :', ':');
+        const key = this.expectIdentifier('Expected property name').value;
+        this.expect('OPERATOR', ':', 'Expected :');
         const value = this.parseExpression();
         properties.push({ key, value });
+        if (!this.check('BLOCK_END')) {
+          this.expect('OPERATOR', ',', 'Expected , or }');
+        }
       } while (this.match('OPERATOR', ','));
     }
-    this.consume('OPERATOR', 'Expected }', '}');
-    return { type: 'object', properties } as ObjectExpression;
+    this.expect('BLOCK_END', 'Expected }');
+    return { type: 'object', properties };
   }
 
-  private parseIdentifierOrCall(): Expression {
-    const name = this.previous().value;
-    let expr: Expression = { type: 'variable', name } as VariableExpression;
-
-    // Handle indexing
-    while (this.match('OPERATOR', '[')) {
-      const index = this.parseExpression();
-      this.consume('OPERATOR', 'Expected ]', ']');
-      expr = { type: 'index', object: expr, index } as IndexExpression;
+  private parseCall(name: string): CallExpression {
+    const args: Expression[] = [];
+    if (!this.check('OPERATOR', ')')) {
+      do {
+        args.push(this.parseExpression());
+      } while (this.match('OPERATOR', ','));
     }
+    this.expect('OPERATOR', ')', 'Expected )');
+    return { type: 'call', name, args };
+  }
 
-    // Handle optional chaining
-    if (this.match('OPERATOR', '?')) {
-      this.consume('OPERATOR', 'Expected . after ?', '.');
-      const property = this.consume('IDENT', 'Expected property name').value;
-      expr = { type: 'optional-chain', object: expr, property } as OptionalChainExpression;
-    }
+  private parseIndex(name: string): IndexExpression {
+    const index = this.parseExpression();
+    this.expect('OPERATOR', ']', 'Expected ]');
+    return { type: 'index', object: { type: 'variable', name }, index };
+  }
 
-    // Handle function calls
-    if (this.match('OPERATOR', '(')) {
-      const args: Expression[] = [];
-      if (!this.check('OPERATOR', ')')) {
-        do {
-          args.push(this.parseExpression());
-        } while (this.match('OPERATOR', ','));
-      }
-      this.consume('OPERATOR', 'Expected )', ')');
-      expr = { type: 'call', name, args } as CallExpression;
-    }
-
-    return expr;
+  private parseOptionalChain(name: string): OptionalChainExpression {
+    const property = this.expectIdentifier('Expected property name').value;
+    return { type: 'optional-chain', object: { type: 'variable', name }, property };
   }
 
   private match(type: TokenType, ...values: string[]): boolean {
-    if (this.check(type, ...values)) {
-      this.advance();
-      return true;
+    if (this.check(type)) {
+      if (values.length === 0 || values.includes(this.peek().value)) {
+        this.advance();
+        return true;
+      }
     }
     return false;
   }
 
-  private check(type: TokenType, ...values: string[]): boolean {
+  private check(type: TokenType): boolean;
+  private check(type: TokenType, value: string): boolean;
+  private check(type: TokenType, value?: string): boolean {
     if (this.isAtEnd()) return false;
     const token = this.peek();
     if (token.type !== type) return false;
-    if (values.length > 0 && !values.includes(token.value)) return false;
+    if (value !== undefined) return token.value === value;
     return true;
   }
 
@@ -550,20 +486,25 @@ export class Parser {
     return this.tokens[this.current - 1];
   }
 
-  private isAtEnd(): boolean {
-    return this.peek().type === 'EOF';
+  public isAtEnd(): boolean {
+    return this.current >= this.tokens.length;
   }
 
-  private consume(type: TokenType, message: string, ...values: string[]): Token {
-    if (this.check(type, ...values)) return this.advance();
-    throw this.error(this.peek(), message);
-  }
-
-  private expect(type: TokenType, message: string): Token {
+  private expect(type: TokenType, message: string): Token;
+  private expect(type: TokenType, value: string, message: string): Token;
+  private expect(type: TokenType, valueOrMessage: string, message?: string): Token {
     if (this.check(type)) {
-      return this.advance();
+      const token = this.peek();
+      if (message === undefined) {
+        // valueOrMessage is message
+        return this.advance();
+      } else {
+        // valueOrMessage is value
+        if (token.value === valueOrMessage) return this.advance();
+        throw this.error(token, message);
+      }
     }
-    throw this.error(this.peek(), message);
+    throw this.error(this.peek(), message || valueOrMessage);
   }
 
   private skipNewlines(): void {
@@ -581,15 +522,23 @@ export class Parser {
     if (!this.isAtEnd() && this.peek().type !== 'NEWLINE' && this.peek().type !== 'BLOCK_END') {
       throw this.error(this.peek(), 'Expected newline');
     }
-    if (!this.isAtEnd() && this.peek().type === 'NEWLINE') this.advance();
+    while (!this.isAtEnd() && this.peek().type === 'NEWLINE') this.advance();
+  }
+
+  private checkNewline(): boolean {
+    return !this.isAtEnd() && this.peek().type === 'NEWLINE';
   }
 
   private error(token: Token, message: string): never {
-    throw new SyntaxError(message, this.filePath, token.line, token.column);
+    throw new SyntaxError(`[line ${token.line}] ${message}`);
   }
 }
 
 export function parse(tokens: Token[], filePath?: string): Program {
   const parser = new Parser(tokens, filePath);
-  return parser.parse();
+  const statements: Statement[] = [];
+  while (!parser.isAtEnd()) {
+    statements.push(parser.parseStatement());
+  }
+  return statements;
 }

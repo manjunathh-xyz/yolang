@@ -72,9 +72,38 @@ say pi         # 3.14159
 
 ## Publishing
 
-1. Ensure your package works locally
-2. Update version in `kexra.json`
-3. Share your package directory or repository
+Kexra uses a GitHub-based package registry. To publish a package:
+
+1. Fork the [kexra-packages](https://github.com/manjunathh-xyz/kexra-packages) repository
+2. Add your package under `packages/your-package-name/`
+3. Add metadata under `site/packages/your-package-name.json`
+4. Open a pull request
+5. Maintainers will review and merge
+
+### Metadata File
+
+Create `site/packages/your-package-name.json`:
+
+```json
+{
+  "name": "your-package-name",
+  "description": "Brief description",
+  "author": "your-github-username",
+  "version": "1.0.0",
+  "repo": "https://github.com/your-username/your-package-repo"
+}
+```
+
+### Package Structure
+
+```
+packages/your-package-name/
+├── kexra.json
+└── src/
+    └── index.kx
+```
+
+Ensure your package works locally before submitting.
 
 ## Best Practices
 

@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Parser = void 0;
 exports.parse = parse;
-const SyntaxError_1 = require("../errors/SyntaxError");
 class Parser {
     constructor(tokens, filePath) {
         this.current = 0;
@@ -12,224 +11,184 @@ class Parser {
     parse() {
         const statements = [];
         while (!this.isAtEnd()) {
-            if (this.peek().type === 'NEWLINE') {
-                this.advance();
-                continue;
-            }
             statements.push(this.parseStatement());
         }
         return statements;
     }
     parseStatement() {
-        const token = this.peek();
-        if (token.type === 'KEYWORD') {
-            switch (token.value) {
-                case 'say':
-                    return this.parseSay();
-                case 'set':
-                    return this.parseSet();
-                case 'const':
-                    return this.parseConst();
-                case 'check':
-                    return this.parseCheck();
-                case 'loop':
-                    return this.parseLoop();
-                case 'for':
-                    return this.parseFor();
-                case 'fn':
-                    return this.parseFunction();
-                case 'return':
-                    return this.parseReturn();
-                case 'break':
-                    return this.parseBreak();
-                case 'continue':
-                    return this.parseContinue();
-                case 'try':
-                    return this.parseTry();
-                case 'switch':
-                    return this.parseSwitch();
-                case 'import':
-                    return this.parseImport();
-                case 'export':
-                    return this.parseExport();
-                case 'use':
-                    return this.parseUse();
-                default:
-                    throw this.error(token, `Unexpected keyword '${token.value}'`);
-            }
+        this.skipNewlines();
+        if (this.match('KEYWORD', 'say')) {
+            return this.parseSay();
         }
-        throw this.error(token, 'Expected statement');
+        if (this.match('KEYWORD', 'set')) {
+            return this.parseSet();
+        }
+        if (this.match('KEYWORD', 'const')) {
+            return this.parseConst();
+        }
+        if (this.match('KEYWORD', 'check')) {
+            return this.parseCheck();
+        }
+        if (this.match('KEYWORD', 'loop')) {
+            return this.parseLoop();
+        }
+        if (this.match('KEYWORD', 'for')) {
+            return this.parseFor();
+        }
+        if (this.match('KEYWORD', 'fn')) {
+            return this.parseFunction();
+        }
+        if (this.match('KEYWORD', 'return')) {
+            return this.parseReturn();
+        }
+        if (this.match('KEYWORD', 'break')) {
+            return this.parseBreak();
+        }
+        if (this.match('KEYWORD', 'continue')) {
+            return this.parseContinue();
+        }
+        if (this.match('KEYWORD', 'try')) {
+            return this.parseTry();
+        }
+        if (this.match('KEYWORD', 'switch')) {
+            return this.parseSwitch();
+        }
+        if (this.match('KEYWORD', 'import')) {
+            return this.parseImport();
+        }
+        if (this.match('KEYWORD', 'export')) {
+            return this.parseExport();
+        }
+        if (this.match('KEYWORD', 'use')) {
+            return this.parseUse();
+        }
+        throw this.error(this.peek(), 'Expected statement');
     }
     parseSay() {
-        this.advance(); // consume 'say'
-        const expr = this.parseExpression();
+        const expression = this.parseExpression();
         this.expectNewline();
-        return { type: 'say', expression: expr };
+        return { type: 'say', expression };
     }
     parseSet() {
-        this.advance(); // 'set'
-        const name = this.consume('IDENT', 'Expected variable name').value;
-        const opToken = this.consume('OPERATOR', 'Expected =');
-        if (opToken.value !== '=') {
-            throw new SyntaxError_1.SyntaxError('Expected =', this.filePath, opToken.line, opToken.column, 'Use "=" for assignment, not "=="');
-        }
-        const expr = this.parseExpression();
+        const name = this.expectIdentifier('Expected variable name').value;
+        this.expect('OPERATOR', '=', 'Expected =');
+        const expression = this.parseExpression();
         this.expectNewline();
-        return { type: 'set', name, expression: expr };
+        return { type: 'set', name, expression };
+    }
+    parseConst() {
+        const name = this.expectIdentifier('Expected variable name').value;
+        this.expect('OPERATOR', '=', 'Expected =');
+        const expression = this.parseExpression();
+        this.expectNewline();
+        return { type: 'const', name, expression };
     }
     parseCheck() {
-        this.advance(); // 'check'
         const condition = this.parseExpression();
-        this.consume('BLOCK_START', 'Expected {');
+        this.expect('BLOCK_START', 'Expected {');
         const body = this.parseBlock();
         let elseBody;
         if (this.match('KEYWORD', 'else')) {
-            this.consume('BLOCK_START', 'Expected { after else');
+            this.expect('BLOCK_START', 'Expected {');
             elseBody = this.parseBlock();
         }
         return { type: 'check', condition, body, elseBody };
     }
     parseLoop() {
-        this.advance(); // 'loop'
         const condition = this.parseExpression();
-        this.consume('BLOCK_START', 'Expected {');
+        this.expect('BLOCK_START', 'Expected {');
         const body = this.parseBlock();
         return { type: 'loop', condition, body };
     }
+    parseFor() {
+        const variable = this.expectIdentifier('Expected variable name').value;
+        this.expect('KEYWORD', 'in', 'Expected in');
+        const iterable = this.parseExpression();
+        this.expect('BLOCK_START', 'Expected {');
+        const body = this.parseBlock();
+        return { type: 'for', variable, iterable, body };
+    }
     parseFunction() {
-        this.advance(); // 'fn'
-        const name = this.consume('IDENT', 'Expected function name').value;
-        this.consume('OPERATOR', 'Expected (', '(');
+        const name = this.expectIdentifier('Expected function name').value;
+        this.expect('OPERATOR', '(', 'Expected (');
         const params = [];
-        let restParam;
         if (!this.check('OPERATOR', ')')) {
             do {
-                const paramName = this.consume('IDENT', 'Expected parameter name').value;
-                let defaultValue;
-                if (this.match('OPERATOR', '=')) {
-                    defaultValue = this.parseExpression();
-                }
-                params.push({ name: paramName, defaultValue });
+                const paramName = this.expectIdentifier('Expected parameter name').value;
+                params.push({ name: paramName });
             } while (this.match('OPERATOR', ','));
-            if (this.match('OPERATOR', '...')) {
-                restParam = this.consume('IDENT', 'Expected rest parameter name').value;
-            }
         }
-        this.consume('OPERATOR', 'Expected )', ')');
-        this.consume('BLOCK_START', 'Expected {');
+        this.expect('OPERATOR', ')', 'Expected )');
+        this.expect('BLOCK_START', 'Expected {');
         const body = this.parseBlock();
-        return { type: 'function', name, params, restParam, body };
+        return { type: 'function', name, params, body };
     }
     parseReturn() {
-        this.advance(); // 'return'
         let expression;
-        if (!this.check('NEWLINE') && !this.isAtEnd()) {
+        if (!this.checkNewline()) {
             expression = this.parseExpression();
         }
         this.expectNewline();
         return { type: 'return', expression };
     }
-    parseFor() {
-        this.advance(); // 'for'
-        const variable = this.consume('IDENT', 'Expected variable name').value;
-        this.consume('KEYWORD', 'Expected in', 'in');
-        const range = this.parseExpression();
-        this.consume('BLOCK_START', 'Expected {');
-        const body = this.parseBlock();
-        return { type: 'for', variable, range, body };
-    }
     parseBreak() {
-        this.advance(); // 'break'
         this.expectNewline();
         return { type: 'break' };
     }
     parseContinue() {
-        this.advance(); // 'continue'
         this.expectNewline();
         return { type: 'continue' };
     }
-    parseConst() {
-        this.advance(); // 'const'
-        const name = this.consume('IDENT', 'Expected variable name').value;
-        this.consume('OPERATOR', 'Expected =', '=');
-        const expression = this.parseExpression();
-        this.expectNewline();
-        return { type: 'const', name, expression };
-    }
     parseTry() {
-        this.advance(); // 'try'
-        this.consume('BLOCK_START', 'Expected { after try');
+        this.expect('BLOCK_START', 'Expected {');
         const tryBody = this.parseBlock();
-        let catchParam;
-        let catchBody;
-        if (this.match('KEYWORD', 'catch')) {
-            this.consume('OPERATOR', 'Expected ( after catch', '(');
-            catchParam = this.consume('IDENT', 'Expected catch parameter').value;
-            this.consume('OPERATOR', 'Expected )', ')');
-            this.consume('BLOCK_START', 'Expected { after catch');
-            catchBody = this.parseBlock();
-        }
+        this.expect('KEYWORD', 'catch', 'Expected catch');
+        const catchParam = this.expectIdentifier('Expected catch parameter').value;
+        this.expect('BLOCK_START', 'Expected {');
+        const catchBody = this.parseBlock();
         let finallyBody;
         if (this.match('KEYWORD', 'finally')) {
-            this.consume('BLOCK_START', 'Expected { after finally');
+            this.expect('BLOCK_START', 'Expected {');
             finallyBody = this.parseBlock();
         }
         return { type: 'try', tryBody, catchParam, catchBody, finallyBody };
     }
     parseSwitch() {
-        this.advance(); // 'switch'
         const expression = this.parseExpression();
-        this.consume('BLOCK_START', 'Expected { after switch');
+        this.expect('BLOCK_START', 'Expected {');
         const cases = [];
-        let defaultCase;
-        while (!this.check('BLOCK_END') && !this.isAtEnd()) {
-            if (this.match('KEYWORD', 'case')) {
-                const value = this.parseExpression();
-                this.consume('BLOCK_START', 'Expected { after case value');
-                const body = this.parseBlock();
-                cases.push({ value, body });
-            }
-            else if (this.match('KEYWORD', 'default')) {
-                this.consume('BLOCK_START', 'Expected { after default');
-                defaultCase = this.parseBlock();
-            }
-            else {
-                throw this.error(this.peek(), 'Expected case or default in switch');
-            }
+        while (this.match('KEYWORD', 'case')) {
+            const value = this.parseExpression();
+            this.expect('OPERATOR', ':', 'Expected :');
+            const body = this.parseBlock();
+            cases.push({ value, body });
         }
-        this.consume('BLOCK_END', 'Expected } after switch');
-        return { type: 'switch', expression, cases, defaultCase };
+        let defaultBody;
+        if (this.match('KEYWORD', 'default')) {
+            this.expect('OPERATOR', ':', 'Expected :');
+            defaultBody = this.parseBlock();
+        }
+        this.expect('BLOCK_END', 'Expected }');
+        return { type: 'switch', expression, cases, defaultBody };
     }
     parseImport() {
-        this.advance(); // 'import'
-        this.consume('OPERATOR', 'Expected { after import', '{');
-        const names = [];
-        if (!this.check('OPERATOR', '}')) {
-            do {
-                names.push(this.consume('IDENT', 'Expected identifier').value);
-            } while (this.match('OPERATOR', ','));
-        }
-        this.consume('OPERATOR', 'Expected }', '}');
-        this.consume('KEYWORD', 'Expected from', 'from');
-        const module = this.consume('STRING', 'Expected module path').value;
+        const name = this.expectIdentifier('Expected module name').value;
         this.expectNewline();
-        return { type: 'import', names, module };
+        return { type: 'import', name };
     }
     parseExport() {
-        this.advance(); // 'export'
-        const name = this.expectIdentifier('Expected identifier after export').value;
+        const name = this.expectIdentifier('Expected export name').value;
         let expression;
-        if (this.peek().type !== 'NEWLINE') {
+        if (!this.checkNewline()) {
             expression = this.parseExpression();
         }
         this.expectNewline();
         return { type: 'export', name, expression };
     }
     parseUse() {
-        this.advance(); // 'use'
-        const module = this.expectIdentifier('Expected module name after use').value;
+        const module = this.expectIdentifier('Expected module name').value;
         this.skipNewlines();
-        this.expect('BLOCK_START', 'Expected { after module name');
+        this.expect('BLOCK_START', 'Expected {');
         this.skipNewlines();
         const imports = [];
         while (!this.check('BLOCK_END')) {
@@ -248,89 +207,71 @@ class Parser {
     parseBlock() {
         const statements = [];
         while (!this.check('BLOCK_END') && !this.isAtEnd()) {
-            if (this.peek().type === 'NEWLINE') {
-                this.advance();
-                continue;
-            }
             statements.push(this.parseStatement());
         }
-        this.consume('BLOCK_END', 'Expected }');
+        this.expect('BLOCK_END', 'Expected }');
         return statements;
     }
     parseExpression() {
         return this.parseTernary();
     }
     parseTernary() {
-        const expr = this.parseNilCoalescing();
+        let expression = this.parseLogical();
         if (this.match('OPERATOR', '?')) {
             const thenBranch = this.parseExpression();
-            this.consume('OPERATOR', 'Expected : in ternary', ':');
-            const elseBranch = this.parseTernary(); // right associative
-            return { type: 'ternary', condition: expr, thenBranch, elseBranch };
+            this.expect('OPERATOR', ':', 'Expected :');
+            const elseBranch = this.parseTernary();
+            expression = { type: 'ternary', condition: expression, thenBranch, elseBranch };
         }
-        return expr;
-    }
-    parseNilCoalescing() {
-        const expr = this.parseLogical();
-        if (this.match('OPERATOR', '??')) {
-            const right = this.parseNilCoalescing();
-            return { type: 'nil-coalescing', left: expr, right };
-        }
-        return expr;
+        return expression;
     }
     parseLogical() {
-        let expr = this.parseEquality();
-        while (this.match('KEYWORD', 'and', 'or')) {
+        let expression = this.parseEquality();
+        while (this.match('KEYWORD', 'and') || this.match('KEYWORD', 'or')) {
             const operator = this.previous().value;
             const right = this.parseEquality();
-            expr = { type: 'logical', left: expr, operator, right };
+            expression = { type: 'logical', operator, left: expression, right };
         }
-        return expr;
+        return expression;
     }
     parseEquality() {
-        let expr = this.parseComparison();
-        while (this.match('OPERATOR', '==', '!=')) {
+        let expression = this.parseComparison();
+        while (this.match('OPERATOR', '==') || this.match('OPERATOR', '!=')) {
             const operator = this.previous().value;
             const right = this.parseComparison();
-            expr = { type: 'binary', left: expr, operator, right };
+            expression = { type: 'binary', operator, left: expression, right };
         }
-        return expr;
+        return expression;
     }
     parseComparison() {
-        let expr = this.parseTerm();
-        while (this.match('OPERATOR', '>', '<', '>=', '<=')) {
+        let expression = this.parseTerm();
+        while (this.match('OPERATOR', '>') ||
+            this.match('OPERATOR', '>=') ||
+            this.match('OPERATOR', '<') ||
+            this.match('OPERATOR', '<=')) {
             const operator = this.previous().value;
             const right = this.parseTerm();
-            expr = { type: 'binary', left: expr, operator, right };
+            expression = { type: 'binary', operator, left: expression, right };
         }
-        return expr;
+        return expression;
     }
     parseTerm() {
-        let expr = this.parseRange();
-        while (this.match('OPERATOR', '+', '-')) {
+        let expression = this.parseFactor();
+        while (this.match('OPERATOR', '+') || this.match('OPERATOR', '-')) {
             const operator = this.previous().value;
-            const right = this.parseRange();
-            expr = { type: 'binary', left: expr, operator, right };
+            const right = this.parseFactor();
+            expression = { type: 'binary', operator, left: expression, right };
         }
-        return expr;
-    }
-    parseRange() {
-        let expr = this.parseFactor();
-        if (this.match('OPERATOR', '..')) {
-            const start = expr;
-            const end = this.parseFactor();
-            expr = { type: 'range', start, end };
-        }
-        return expr;
+        return expression;
     }
     parseFactor() {
-        let expr = this.parseUnary();
-        while (this.match('OPERATOR', '*', '/')) {
+        let expression = this.parseUnary();
+        while (this.match('OPERATOR', '*') || this.match('OPERATOR', '/')) {
             const operator = this.previous().value;
             const right = this.parseUnary();
-            expr = { type: 'binary', left: expr, operator, right };
+            expression = { type: 'binary', operator, left: expression, right };
         }
-        return expr;
+        return expression;
     }
     parseUnary() {
         if (this.match('KEYWORD', 'not')) {
@@ -350,22 +291,11 @@ class Parser {
         return this.parsePrimary();
     }
     parsePrimary() {
-        if (this.match('ARRAY_START')) {
-            return this.parseArray();
-        }
         if (this.match('NUMBER')) {
-            return {
-                type: 'literal',
-                valueType: 'number',
-                value: parseFloat(this.previous().value),
-            };
+            return { type: 'literal', valueType: 'number', value: parseFloat(this.previous().value) };
         }
         if (this.match('STRING')) {
-            return {
-                type: 'literal',
-                valueType: 'string',
-                value: this.previous().value,
-            };
+            return { type: 'literal', valueType: 'string', value: this.previous().value.slice(1, -1) };
         }
         if (this.match('KEYWORD', 'true')) {
             return { type: 'literal', valueType: 'boolean', value: true };
@@ -373,19 +303,32 @@ class Parser {
         if (this.match('KEYWORD', 'false')) {
             return { type: 'literal', valueType: 'boolean', value: false };
         }
-        if (this.match('OPERATOR', '[')) {
+        if (this.match('KEYWORD', 'null')) {
+            return { type: 'literal', valueType: 'null', value: null };
+        }
+        if (this.match('ARRAY_START')) {
             return this.parseArray();
         }
-        if (this.match('OPERATOR', '{')) {
+        if (this.match('BLOCK_START')) {
             return this.parseObject();
         }
         if (this.match('IDENT')) {
-            return this.parseIdentifierOrCall();
+            const name = this.previous().value;
+            if (this.match('OPERATOR', '(')) {
+                return this.parseCall(name);
+            }
+            if (this.match('OPERATOR', '[')) {
+                return this.parseIndex(name);
+            }
+            if (this.match('OPERATOR', '?.')) {
+                return this.parseOptionalChain(name);
+            }
+            return { type: 'variable', name };
         }
         if (this.match('OPERATOR', '(')) {
-            const expr = this.parseExpression();
-            this.consume('OPERATOR', 'Expected )', ')');
-            return expr;
+            const expression = this.parseExpression();
+            this.expect('OPERATOR', ')', 'Expected )');
+            return expression;
         }
         throw this.error(this.peek(), 'Expected expression');
     }
@@ -394,146 +337,128 @@ class Parser {
         if (!this.check('ARRAY_END')) {
             do {
                 elements.push(this.parseExpression());
+                if (!this.check('ARRAY_END')) {
+                    this.expect('OPERATOR', ',', 'Expected , or ]');
+                }
             } while (this.match('OPERATOR', ','));
         }
-        this.consume('ARRAY_END', 'Expected ]');
+        this.expect('ARRAY_END', 'Expected ]');
         return { type: 'array', elements };
     }
-}
-exports.Parser = Parser;
-this.consume('OPERATOR', 'Expected ]', ']');
-return { type: 'array', elements };
-parseObject();
-types_1.ObjectExpression;
-{
-    const properties = [];
-    if (!this.check('OPERATOR', '}')) {
-        do {
-            const key = this.consume('IDENT', 'Expected property name').value;
-            this.consume('OPERATOR', 'Expected :', ':');
-            const value = this.parseExpression();
-            properties.push({ key, value });
-        } while (this.match('OPERATOR', ','));
+    parseObject() {
+        const properties = [];
+        if (!this.check('BLOCK_END')) {
+            do {
+                const key = this.expectIdentifier('Expected property name').value;
+                this.expect('OPERATOR', ':', 'Expected :');
+                const value = this.parseExpression();
+                properties.push({ key, value });
+                if (!this.check('BLOCK_END')) {
+                    this.expect('OPERATOR', ',', 'Expected , or }');
+                }
+            } while (this.match('OPERATOR', ','));
+        }
+        this.expect('BLOCK_END', 'Expected }');
+        return { type: 'object', properties };
     }
-    this.consume('OPERATOR', 'Expected }', '}');
-    return { type: 'object', properties };
-}
-parseIdentifierOrCall();
-types_1.Expression;
-{
-    const name = this.previous().value;
-    let expr = { type: 'variable', name };
-    // Handle indexing
-    while (this.match('OPERATOR', '[')) {
-        const index = this.parseExpression();
-        this.consume('OPERATOR', 'Expected ]', ']');
-        expr = { type: 'index', object: expr, index };
-    }
-    // Handle optional chaining
-    if (this.match('OPERATOR', '?')) {
-        this.consume('OPERATOR', 'Expected . after ?', '.');
-        const property = this.consume('IDENT', 'Expected property name').value;
-        expr = { type: 'optional-chain', object: expr, property };
-    }
-    // Handle function calls
-    if (this.match('OPERATOR', '(')) {
+    parseCall(name) {
         const args = [];
         if (!this.check('OPERATOR', ')')) {
             do {
                 args.push(this.parseExpression());
             } while (this.match('OPERATOR', ','));
         }
-        this.consume('OPERATOR', 'Expected )', ')');
-        expr = { type: 'call', name, args };
+        this.expect('OPERATOR', ')', 'Expected )');
+        return { type: 'call', name, args };
     }
-    return expr;
-}
-match(type, types_1.TokenType, ...values, string[]);
-boolean;
-{
-    if (this.check(type, ...values)) {
-        this.advance();
+    parseIndex(name) {
+        const index = this.parseExpression();
+        this.expect('OPERATOR', ']', 'Expected ]');
+        return { type: 'index', object: { type: 'variable', name }, index };
+    }
+    parseOptionalChain(name) {
+        const property = this.expectIdentifier('Expected property name').value;
+        return { type: 'optional-chain', object: { type: 'variable', name }, property };
+    }
+    match(type, ...values) {
+        if (this.check(type)) {
+            if (values.length === 0 || values.includes(this.peek().value)) {
+                this.advance();
+                return true;
+            }
+        }
+        return false;
+    }
+    check(type, value) {
+        if (this.isAtEnd())
+            return false;
+        const token = this.peek();
+        if (token.type !== type)
+            return false;
+        if (value !== undefined)
+            return token.value === value;
         return true;
     }
-    return false;
-}
-check(type, types_1.TokenType, ...values, string[]);
-boolean;
-{
-    if (this.isAtEnd())
-        return false;
-    const token = this.peek();
-    if (token.type !== type)
-        return false;
-    if (values.length > 0 && !values.includes(token.value))
-        return false;
-    return true;
-}
-advance();
-types_1.Token;
-{
-    if (!this.isAtEnd())
-        this.current++;
-    return this.previous();
-}
-peek();
-types_1.Token;
-{
-    return this.tokens[this.current];
-}
-previous();
-types_1.Token;
-{
-    return this.tokens[this.current - 1];
-}
-isAtEnd();
-boolean;
-{
-    return this.peek().type === 'EOF';
-}
-consume(type, types_1.TokenType, message, string, ...values, string[]);
-types_1.Token;
-{
-    if (this.check(type, ...values))
-        return this.advance();
-    throw this.error(this.peek(), message);
-}
-expect(type, types_1.TokenType, message, string);
-types_1.Token;
-{
-    if (this.check(type)) {
-        return this.advance();
+    advance() {
+        if (!this.isAtEnd())
+            this.current++;
+        return this.previous();
     }
-    throw this.error(this.peek(), message);
-}
-skipNewlines();
-void {
-    : .isAtEnd() && this.peek().type === 'NEWLINE'
-};
-{
-    this.advance();
-}
-expectIdentifier(message, string);
-types_1.Token;
-{
-    if (this.peek().type === 'IDENT')
-        return this.advance();
-    throw this.error(this.peek(), message);
-}
-expectNewline();
-{
-    if (!this.isAtEnd() && this.peek().type !== 'NEWLINE' && this.peek().type !== 'BLOCK_END') {
-        throw this.error(this.peek(), 'Expected newline');
+    peek() {
+        return this.tokens[this.current];
     }
-    if (!this.isAtEnd() && this.peek().type === 'NEWLINE')
-        this.advance();
+    previous() {
+        return this.tokens[this.current - 1];
+    }
+    isAtEnd() {
+        return this.current >= this.tokens.length;
+    }
+    expect(type, valueOrMessage, message) {
+        if (this.check(type)) {
+            const token = this.peek();
+            if (message === undefined) {
+                // valueOrMessage is message
+                return this.advance();
+            }
+            else {
+                // valueOrMessage is value
+                if (token.value === valueOrMessage)
+                    return this.advance();
+                throw this.error(token, message);
+            }
+        }
+        throw this.error(this.peek(), message || valueOrMessage);
+    }
+    skipNewlines() {
+        while (!this.isAtEnd() && this.peek().type === 'NEWLINE') {
+            this.advance();
+        }
+    }
+    expectIdentifier(message) {
+        if (this.peek().type === 'IDENT')
+            return this.advance();
+        throw this.error(this.peek(), message);
+    }
+    expectNewline() {
+        if (!this.isAtEnd() && this.peek().type !== 'NEWLINE' && this.peek().type !== 'BLOCK_END') {
+            throw this.error(this.peek(), 'Expected newline');
+        }
+        while (!this.isAtEnd() && this.peek().type === 'NEWLINE')
+            this.advance();
+    }
+    checkNewline() {
+        return !this.isAtEnd() && this.peek().type === 'NEWLINE';
+    }
+    error(token, message) {
+        throw new SyntaxError(`[line ${token.line}] ${message}`);
+    }
 }
-error(token, types_1.Token, message, string);
-never;
-{
-    throw new SyntaxError_1.SyntaxError(message, this.filePath, token.line, token.column);
-}
+exports.Parser = Parser;
 function parse(tokens, filePath) {
     const parser = new Parser(tokens, filePath);
-    return parser.parse();
+    const statements = [];
+    while (!parser.isAtEnd()) {
+        statements.push(parser.parseStatement());
+    }
+    return statements;
 }

@@ -1,0 +1,7 @@
+use math-extra { sin, cos, e }
+
+say sin(0)
+
+say cos(0)
+
+say e

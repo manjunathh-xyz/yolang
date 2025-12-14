@@ -1,8 +1,45 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || (function () {
+    var ownKeys = function(o) {
+        ownKeys = Object.getOwnPropertyNames || function (o) {
+            var ar = [];
+            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
+            return ar;
+        };
+        return ownKeys(o);
+    };
+    return function (mod) {
+        if (mod && mod.__esModule) return mod;
+        var result = {};
+        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
+        __setModuleDefault(result, mod);
+        return result;
+    };
+})();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Interpreter = void 0;
 const RuntimeError_1 = require("../errors/RuntimeError");
 const values_1 = require("./values");
+const tokenize_1 = require("../lexer/tokenize");
+const parse_1 = require("../parser/parse");
+const fs = __importStar(require("fs"));
+const path = __importStar(require("path"));
 class Interpreter {
     constructor(callStack, builtins, customBuiltins, options, emit) {
         this.callStack = callStack;
@@ -29,6 +66,9 @@ class Interpreter {
     }
     loadModule(name, exports) {
         this.modules.set(name, exports);
+    }
+    getModule(name) {
+        return this.modules.get(name);
     }
     valueToJS(value) {
         switch (value.type) {
@@ -67,7 +107,7 @@ class Interpreter {
             case 'say':
                 const sayStmt = stmt;
                 const value = this.evaluate(sayStmt.expression);
-                console.log(this.valueToJS(value));
+                this.emit('output', { value: this.valueToJS(value) });
                 break;
             case 'set':
                 const setStmt = stmt;
@@ -377,9 +417,9 @@ class Interpreter {
         throw new RuntimeError_1.RuntimeError('Condition must evaluate to boolean');
     }
     executeFor(stmt) {
-        const rangeExpr = stmt.range;
+        const rangeExpr = stmt.iterable;
         if (rangeExpr.type !== 'range') {
-            throw new RuntimeError_1.RuntimeError('For loop range must be a range expression');
+            throw new RuntimeError_1.RuntimeError('For loop iterable must be a range expression');
         }
         const startVal = this.evaluate(rangeExpr.start);
         const endVal = this.evaluate(rangeExpr.end);
@@ -547,8 +587,8 @@ class Interpreter {
                 return;
             }
         }
-        if (stmt.defaultCase) {
-            for (const s of stmt.defaultCase) {
+        if (stmt.defaultBody) {
+            for (const s of stmt.defaultBody) {
                 this.executeStatement(s);
             }
         }
@@ -556,18 +596,11 @@ class Interpreter {
     executeImport(stmt) {
         // For now, assume modules are loaded externally
         // In full implementation, this would load the module file
-        const moduleExports = this.modules.get(stmt.module);
+        const moduleExports = this.modules.get(stmt.name);
         if (!moduleExports) {
-            throw new RuntimeError_1.RuntimeError(`Module '${stmt.module}' not found`);
+            throw new RuntimeError_1.RuntimeError(`Module '${stmt.name}' not found`);
         }
-        for (const name of stmt.names) {
-            if (moduleExports.has(name)) {
-                this.currentEnv().set(name, moduleExports.get(name));
-            }
-            else {
-                throw new RuntimeError_1.RuntimeError(`Export '${name}' not found in module '${stmt.module}'`);
-            }
-        }
+        this.currentEnv().set(stmt.name, new values_1.Value(values_1.ValueType.OBJECT, moduleExports));
     }
     executeExport(stmt) {
         // For now, add to current module (assuming file-based)
@@ -606,25 +639,33 @@ class Interpreter {
     }
     loadUserModule(name) {
         console.log(`Loading module ${name}`);
-        const exports = new Map();
-        // For now, hardcode for math-extra
-        if (name === 'math-extra') {
-            exports.set('sin', values_1.Value.function((args) => {
-                if (args.length !== 1 || args[0].type !== 'number')
-                    throw new Error('sin expects one number');
-                return values_1.Value.number(Math.sin(args[0].value));
-            }));
-            exports.set('cos', values_1.Value.function((args) => {
-                if (args.length !== 1 || args[0].type !== 'number')
-                    throw new Error('cos expects one number');
-                return values_1.Value.number(Math.cos(args[0].value));
-            }));
-            exports.set('e', values_1.Value.number(Math.E));
+        const modulePath = path.join('kex_modules', name, 'src', 'index.kx');
+        if (!fs.existsSync(modulePath)) {
+            throw new RuntimeError_1.RuntimeError(`Module '${name}' not found at ${modulePath}`);
+        }
+        // Load and run the module file
+        const source = fs.readFileSync(modulePath, 'utf-8');
+        const tokens = (0, tokenize_1.tokenize)(source);
+        const program = (0, parse_1.parse)(tokens, modulePath);
+        // Save current 'current' module
+        const savedCurrent = this.modules.get('current');
+        // Run the module
+        this.interpret(program);
+        // Get the exports from 'current' module
+        const exports = this.modules.get('current');
+        if (exports) {
+            this.modules.set(name, new Map(exports));
         }
         else {
-            throw new RuntimeError_1.RuntimeError(`Module '${name}' not found`);
+            this.modules.set(name, new Map());
         }
-        this.modules.set(name, exports);
+        // Restore or clear 'current'
+        if (savedCurrent) {
+            this.modules.set('current', savedCurrent);
+        }
+        else {
+            this.modules.delete('current');
+        }
     }
 }
 exports.Interpreter = Interpreter;

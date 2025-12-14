@@ -20,6 +20,16 @@ fn add(a, b) {
 say add(2, 3)
 ```
 
+## Packages
+
+Kexra packages live inside the `packages/` folder.
+
+To contribute a package:
+
+1. Fork the repo
+2. Add your package under `packages/`
+3. Open a pull request
+
 ## What is Kexra?
 
 - Interpreted scripting language

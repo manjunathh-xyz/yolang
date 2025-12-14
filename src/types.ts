@@ -18,29 +18,27 @@ export interface Token {
   column: number;
 }
 
-export interface Expression {
-  type:
-    | 'literal'
-    | 'variable'
-    | 'binary'
-    | 'logical'
-    | 'call'
-    | 'array'
-    | 'object'
-    | 'index'
-    | 'nil-safe'
-    | 'range'
-    | 'ternary'
-    | 'nil-coalescing'
-    | 'optional-chain'
-    | 'await'
-    | 'unary';
-}
+export type Expression =
+  | LiteralExpression
+  | VariableExpression
+  | BinaryExpression
+  | LogicalExpression
+  | CallExpression
+  | ArrayExpression
+  | ObjectExpression
+  | IndexExpression
+  | NilSafeExpression
+  | RangeExpression
+  | TernaryExpression
+  | NilCoalescingExpression
+  | OptionalChainExpression
+  | AwaitExpression
+  | UnaryExpression;
 
-export interface LiteralExpression extends Expression {
+export interface LiteralExpression {
   type: 'literal';
-  valueType: 'number' | 'string' | 'boolean';
-  value: number | string | boolean;
+  valueType: 'number' | 'string' | 'boolean' | 'null';
+  value: number | string | boolean | null;
 }
 
 // TODO: v0.5.0 - Implement unified Value type for runtime
@@ -53,167 +51,165 @@ export type Value =
   | { type: 'function'; value: FunctionDeclaration }
   | { type: 'null'; value: null };
 
-export interface VariableExpression extends Expression {
+export interface VariableExpression {
   type: 'variable';
   name: string;
 }
 
-export interface BinaryExpression extends Expression {
+export interface BinaryExpression {
   type: 'binary';
   left: Expression;
   operator: string;
   right: Expression;
 }
 
-export interface CallExpression extends Expression {
+export interface CallExpression {
   type: 'call';
   name: string;
   args: Expression[];
 }
 
-export interface ArrayExpression extends Expression {
+export interface ArrayExpression {
   type: 'array';
   elements: Expression[];
 }
 
-export interface ObjectExpression extends Expression {
+export interface ObjectExpression {
   type: 'object';
   properties: { key: string; value: Expression }[];
 }
 
-export interface IndexExpression extends Expression {
+export interface IndexExpression {
   type: 'index';
   object: Expression;
   index: Expression;
 }
 
-export interface LogicalExpression extends Expression {
+export interface LogicalExpression {
   type: 'logical';
-  left: Expression;
-  operator: 'and' | 'or' | 'not';
-  right?: Expression; // for not, right is undefined
+  operator: string;
+  left?: Expression;
+  right: Expression;
 }
 
-export interface NilSafeExpression extends Expression {
+export interface NilSafeExpression {
   type: 'nil-safe';
   object: Expression;
   property: string;
 }
 
-export interface RangeExpression extends Expression {
+export interface RangeExpression {
   type: 'range';
   start: Expression;
   end: Expression;
 }
 
-export interface TernaryExpression extends Expression {
+export interface TernaryExpression {
   type: 'ternary';
   condition: Expression;
   thenBranch: Expression;
   elseBranch: Expression;
 }
 
-export interface NilCoalescingExpression extends Expression {
+export interface NilCoalescingExpression {
   type: 'nil-coalescing';
   left: Expression;
   right: Expression;
 }
 
-export interface OptionalChainExpression extends Expression {
+export interface OptionalChainExpression {
   type: 'optional-chain';
   object: Expression;
   property: string;
 }
 
-export interface AwaitExpression extends Expression {
+export interface AwaitExpression {
   type: 'await';
   expression: Expression;
 }
 
-export interface UnaryExpression extends Expression {
+export interface UnaryExpression {
   type: 'unary';
   operator: string;
   right: Expression;
 }
 
-export interface Statement {
-  type:
-    | 'say'
-    | 'set'
-    | 'const'
-    | 'check'
-    | 'loop'
-    | 'for'
-    | 'function'
-    | 'return'
-    | 'break'
-    | 'continue'
-    | 'try'
-    | 'switch'
-    | 'import'
-    | 'export'
-    | 'use';
-}
+export type Statement =
+  | SayStatement
+  | SetStatement
+  | ConstStatement
+  | CheckStatement
+  | LoopStatement
+  | ForStatement
+  | FunctionDeclaration
+  | ReturnStatement
+  | BreakStatement
+  | ContinueStatement
+  | TryStatement
+  | SwitchStatement
+  | ImportStatement
+  | ExportStatement
+  | UseStatement;
 
-export interface SayStatement extends Statement {
+export interface SayStatement {
   type: 'say';
   expression: Expression;
 }
 
-export interface SetStatement extends Statement {
+export interface SetStatement {
   type: 'set';
   name: string;
   expression: Expression;
 }
 
-export interface CheckStatement extends Statement {
+export interface CheckStatement {
   type: 'check';
   condition: Expression;
   body: Statement[];
   elseBody?: Statement[];
 }
 
-export interface LoopStatement extends Statement {
+export interface LoopStatement {
   type: 'loop';
   condition: Expression;
   body: Statement[];
 }
 
-export interface FunctionDeclaration extends Statement {
+export interface FunctionDeclaration {
   type: 'function';
   name: string;
-  params: { name: string; defaultValue?: Expression }[];
+  params: Parameter[];
   restParam?: string;
   body: Statement[];
 }
 
-export interface ReturnStatement extends Statement {
+export interface ReturnStatement {
   type: 'return';
   expression?: Expression;
 }
 
-export interface ForStatement extends Statement {
+export interface ForStatement {
   type: 'for';
   variable: string;
-  range: Expression;
+  iterable: Expression;
   body: Statement[];
 }
 
-export interface BreakStatement extends Statement {
+export interface BreakStatement {
   type: 'break';
 }
 
-export interface ContinueStatement extends Statement {
+export interface ContinueStatement {
   type: 'continue';
 }
 
-export interface ConstStatement extends Statement {
+export interface ConstStatement {
   type: 'const';
   name: string;
   expression: Expression;
 }
 
-export interface TryStatement extends Statement {
+export interface TryStatement {
   type: 'try';
   tryBody: Statement[];
   catchParam?: string;
@@ -221,29 +217,33 @@ export interface TryStatement extends Statement {
   finallyBody?: Statement[];
 }
 
-export interface SwitchStatement extends Statement {
+export interface SwitchStatement {
   type: 'switch';
   expression: Expression;
   cases: { value: Expression; body: Statement[] }[];
-  defaultCase?: Statement[];
+  defaultBody?: Statement[];
 }
 
-export interface ImportStatement extends Statement {
+export interface ImportStatement {
   type: 'import';
-  names: string[];
-  module: string;
+  name: string;
 }
 
-export interface ExportStatement extends Statement {
+export interface ExportStatement {
   type: 'export';
   name: string;
   expression?: Expression;
 }
 
-export interface UseStatement extends Statement {
+export interface UseStatement {
   type: 'use';
   module: string;
   imports: string[];
+}
+
+export interface Parameter {
+  name: string;
+  defaultValue?: Expression;
 }
 
 export type Program = Statement[];
