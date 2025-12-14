@@ -1,6 +1,6 @@
 {
   "name": "kexra",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "A playful, beginner-friendly scripting language",
   "main": "dist/cli.js",
   "bin": {

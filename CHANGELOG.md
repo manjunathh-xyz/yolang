@@ -13,6 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced a minimal landing page
 - Simplified project public surface
 
+## [0.9.5] - 2025-12-14
+
+### Changed
+
+- Migrated registry backend to Fly.io
+
+### Notes
+
+- No user-facing changes
+
 ## [0.9.4] - 2025-12-14
 
 ### Improved

@@ -1,6 +1,6 @@
 {
   "name": "kexra-registry-web",
-  "version": "0.9.4",
+  "version": "0.9.5",
   "description": "Web interface for Kexra package registry",
   "main": "index.js",
   "scripts": {

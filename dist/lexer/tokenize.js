@@ -126,6 +126,18 @@ function tokenize(source, filePath) {
             column++;
             continue;
         }
+        if (char === '[') {
+            tokens.push({ type: 'ARRAY_START', value: '[', line, column });
+            pos++;
+            column++;
+            continue;
+        }
+        if (char === ']') {
+            tokens.push({ type: 'ARRAY_END', value: ']', line, column });
+            pos++;
+            column++;
+            continue;
+        }
         throw new SyntaxError_1.SyntaxError(`Unexpected character '${char}'`, filePath, line, column);
     }
     tokens.push({ type: 'EOF', value: '', line, column });
