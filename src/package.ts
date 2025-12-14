@@ -27,19 +27,19 @@ export class PackageManager {
     console.log('Created kexra.json');
   }
 
-  async install(pkg?: string): Promise<void> {
+  install(pkg?: string): void {
     if (!pkg) {
       // Install dependencies from manifest
       const manifest = this.readManifest();
       for (const [name, version] of Object.entries(manifest.dependencies || {})) {
-        await this.installPackage(name, version as string);
+        this.installPackage(name, version as string);
       }
       return;
     }
 
     // Parse pkg@version
     const [name, version] = pkg.split('@');
-    await this.installPackage(name, version || 'latest');
+    this.installPackage(name, version || 'latest');
   }
 
   private async installPackage(name: string, version: string): Promise<void> {

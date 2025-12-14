@@ -500,25 +500,11 @@ types_1.Token;
 }
 expect(type, types_1.TokenType, message, string);
 types_1.Token;
-expect(type, types_1.TokenType, value, string, message, string);
-types_1.Token;
-expect(type, types_1.TokenType, valueOrMessage, string, message ?  : string);
-types_1.Token;
 {
     if (this.check(type)) {
-        const token = this.peek();
-        if (message === undefined) {
-            // valueOrMessage is message
-            return this.advance();
-        }
-        else {
-            // valueOrMessage is value
-            if (token.value === valueOrMessage)
-                return this.advance();
-            throw this.error(token, message);
-        }
+        return this.advance();
     }
-    throw this.error(this.peek(), message || valueOrMessage);
+    throw this.error(this.peek(), message);
 }
 skipNewlines();
 void {

@@ -559,21 +559,11 @@ export class Parser {
     throw this.error(this.peek(), message);
   }
 
-  private expect(type: TokenType, message: string): Token;
-  private expect(type: TokenType, value: string, message: string): Token;
-  private expect(type: TokenType, valueOrMessage: string, message?: string): Token {
+  private expect(type: TokenType, message: string): Token {
     if (this.check(type)) {
-      const token = this.peek();
-      if (message === undefined) {
-        // valueOrMessage is message
-        return this.advance();
-      } else {
-        // valueOrMessage is value
-        if (token.value === valueOrMessage) return this.advance();
-        throw this.error(token, message);
-      }
+      return this.advance();
     }
-    throw this.error(this.peek(), message || valueOrMessage);
+    throw this.error(this.peek(), message);
   }
 
   private skipNewlines(): void {
