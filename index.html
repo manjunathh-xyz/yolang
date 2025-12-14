@@ -1,93 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kexra - A Simple, Educational Scripting Language</title>
-    <meta name="description" content="Kexra is a beginner-friendly scripting language designed for learning programming concepts. Simple syntax, clear error messages, and comprehensive documentation.">
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" href="assets/logo.svg" type="image/svg+xml">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kexra</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main>
     <header>
-        <div class="container">
-            <div class="logo">K</div>
-            <h1>Kexra</h1>
-            <p class="tagline">A simple, educational scripting language</p>
-        </div>
+      <h1>Kexra</h1>
+      <p>A small, expressive scripting language built for learning and experimentation.</p>
     </header>
 
-    <main class="container">
-        <section id="hero">
-            <h2>Learn Programming Through Simplicity</h2>
-            <p>Kexra is an interpreted scripting language designed for beginners, students, and anyone interested in programming language design. Built with TypeScript and running on Node.js.</p>
-
-            <div class="code-block">
-                <pre><code>say "Hello, Kexra"
-
-set x = 5
-
-check x > 3 {
-  say "x is big"
-}
+    <section class="example">
+      <h2>Example</h2>
+      <pre><code>say "Hello, Kexra"
 
 fn add(a, b) {
   return a + b
 }
 
 say add(2, 3)</code></pre>
-            </div>
+    </section>
 
-            <div class="install">
-                <h3>Install & Run</h3>
-                <pre><code>npm install -g kexra
-kex run examples/hello.kx</code></pre>
-            </div>
+    <section class="about">
+      <h2>What is Kexra?</h2>
+      <ul>
+        <li>Interpreted scripting language</li>
+        <li>Built in TypeScript</li>
+        <li>Runs on Node.js</li>
+        <li>Open source</li>
+      </ul>
 
-            <a href="website/docs/index.html" class="btn primary">📘 Read the Documentation</a>
-            <a href="https://github.com/manjunathh-xyz/kexra" class="btn">⭐ View on GitHub</a>
-        </section>
+      <h2>What Kexra is not</h2>
+      <ul>
+        <li>Not production-ready</li>
+        <li>Not a JavaScript replacement</li>
+        <li>Not a framework</li>
+      </ul>
+    </section>
 
-        <section id="features">
-            <h2>Why Kexra?</h2>
-            <div class="features-grid">
-                <div class="feature">
-                    <h3>🎯 Simple Syntax</h3>
-                    <p>English-like keywords make code readable and easy to learn. No complex symbols or operators.</p>
-                </div>
-                <div class="feature">
-                    <h3>⚡ Instant Feedback</h3>
-                    <p>Interpreted language with immediate execution. No compilation step required.</p>
-                </div>
-                <div class="feature">
-                    <h3>🖥️ Interactive REPL</h3>
-                    <p>Experiment and learn in real-time with the built-in Read-Eval-Print Loop.</p>
-                </div>
-                <div class="feature">
-                    <h3>🔧 Educational Focus</h3>
-                    <p>Designed to teach fundamental programming concepts and language implementation.</p>
-                </div>
-                <div class="feature">
-                    <h3>📚 Clear Documentation</h3>
-                    <p>Comprehensive guides from basics to advanced topics with examples throughout.</p>
-                </div>
-                <div class="feature">
-                    <h3>🧮 Functions & More</h3>
-                    <p>User-defined functions, control flow, and clear error messages.</p>
-                </div>
-            </div>
-        </section>
-    </main>
+    <section class="links">
+      <h2>Links</h2>
+      <ul>
+        <li><a href="https://github.com/manjunathh-xyz/kexra">GitHub Repository</a></li>
+        <li><a href="https://www.npmjs.com/package/kexra">npm Package</a></li>
+        <li><a href="https://github.com/manjunathh-xyz/kexra/issues">Report Issues</a></li>
+      </ul>
+    </section>
 
     <footer>
-        <div class="container">
-            <p>&copy; 2025 Kexra. Built with ❤️ using TypeScript.</p>
-            <div class="footer-links">
-                <a href="website/docs/index.html">Documentation</a>
-                <a href="https://github.com/manjunathh-xyz/kexra">GitHub</a>
-                <a href="https://github.com/manjunathh-xyz/kexra/blob/main/LICENSE">License</a>
-            </div>
-        </div>
+      <p>Created by <a href="https://github.com/manjunathh-xyz">Manjunath H</a> and <a href="https://github.com/ramkrishna-xyz">Ramkrishna</a></p>
     </footer>
+  </main>
 </body>
 </html>
