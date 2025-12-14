@@ -13,10 +13,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: docs-site/package-lock.json
       - name: Install dependencies
-        run: cd docs-site && npm ci
+        run: cd docs-site && npm install
       - name: Build docs
         run: cd docs-site && npm run build
       - name: Deploy to GitHub Pages
