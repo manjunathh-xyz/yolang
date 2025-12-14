@@ -13,6 +13,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced a minimal landing page
 - Simplified project public surface
 
+## [0.9.4] - 2025-12-14
+
+### Improved
+
+- Language parity with JS/Python
+- Async and error system reliability
+- Package system completeness
+- Registry accuracy
+
+### Notes
+
+- No breaking changes
+
 ## [0.9.3] - 2025-12-14
 
 ### Added

@@ -143,6 +143,20 @@ export function tokenize(source: string, filePath?: string): Token[] {
       continue;
     }
 
+    if (char === '[') {
+      tokens.push({ type: 'ARRAY_START', value: '[', line, column });
+      pos++;
+      column++;
+      continue;
+    }
+
+    if (char === ']') {
+      tokens.push({ type: 'ARRAY_END', value: ']', line, column });
+      pos++;
+      column++;
+      continue;
+    }
+
     throw new SyntaxError(`Unexpected character '${char}'`, filePath, line, column);
   }
 

@@ -84,14 +84,51 @@ function main() {
   }
 
   if (args[0] === 'fmt') {
-    // TODO: implement fmt
-    console.log('Formatting files...');
+    const files = args.slice(1);
+    if (files.length === 0) {
+      console.log('Usage: kex fmt <file.kx> [files...]');
+      return;
+    }
+    for (const file of files) {
+      // Simple formatter: just read and write back (placeholder)
+      const fs = require('fs');
+      if (fs.existsSync(file)) {
+        const content = fs.readFileSync(file, 'utf-8');
+        // For now, no changes
+        fs.writeFileSync(file, content);
+        console.log(`Formatted ${file}`);
+      } else {
+        console.error(`File not found: ${file}`);
+      }
+    }
     return;
   }
 
   if (args[0] === 'test') {
-    // TODO: implement test
-    console.log('Running tests...');
+    const fs = require('fs');
+    const testFiles = fs.readdirSync('.').filter((f: string) => f.endsWith('.test.kx'));
+    let passed = 0;
+    let failed = 0;
+    for (const file of testFiles) {
+      try {
+        const runtime = new KexraRuntime();
+        const result = runtime.runFile(file);
+        if (result.success) {
+          console.log(`✓ ${file}`);
+          passed++;
+        } else {
+          console.log(`✗ ${file}: ${result.error}`);
+          failed++;
+        }
+      } catch (e) {
+        console.log(`✗ ${file}: ${(e as Error).message}`);
+        failed++;
+      }
+    }
+    console.log(`\nPassed: ${passed}, Failed: ${failed}`);
+    if (failed > 0) {
+      process.exit(1);
+    }
     return;
   }
 

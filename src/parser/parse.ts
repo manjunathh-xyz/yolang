@@ -419,8 +419,10 @@ export class Parser {
     return this.parsePrimary();
   }
 
-  // TODO: v0.5.0 - Add parsing for arrays [], objects {}, and indexing []
   private parsePrimary(): Expression {
+    if (this.match('ARRAY_START')) {
+      return this.parseArray();
+    }
     if (this.match('NUMBER')) {
       return {
         type: 'literal',
@@ -460,11 +462,14 @@ export class Parser {
 
   private parseArray(): ArrayExpression {
     const elements: Expression[] = [];
-    if (!this.check('OPERATOR', ']')) {
+    if (!this.check('ARRAY_END')) {
       do {
         elements.push(this.parseExpression());
       } while (this.match('OPERATOR', ','));
     }
+    this.consume('ARRAY_END', 'Expected ]');
+    return { type: 'array', elements };
+  }
     this.consume('OPERATOR', 'Expected ]', ']');
     return { type: 'array', elements } as ArrayExpression;
   }

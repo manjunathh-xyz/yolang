@@ -6,6 +6,8 @@ export type TokenType =
   | 'OPERATOR'
   | 'BLOCK_START'
   | 'BLOCK_END'
+  | 'ARRAY_START'
+  | 'ARRAY_END'
   | 'NEWLINE'
   | 'EOF';
 

@@ -1,0 +1,17 @@
+# Test standard library
+set s = "  hello world  "
+set trimmed = trim(s)
+say "trimmed: '" + trimmed + "'"
+
+set parts = split("a,b,c", ",")
+say "parts: " + parts
+
+set lower = lower("HELLO")
+say "lower: " + lower
+
+set upper = upper("hello")
+say "upper: " + upper
+
+say "isNumber(5): " + isNumber(5)
+say "isString('hi'): " + isString("hi")
+say "now: " + now()
