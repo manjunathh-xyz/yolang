@@ -20,23 +20,15 @@ fn add(a, b) {
 say add(2, 3)
 ```
 
-## Packages
+## Website & Package Docs
 
-Kexra packages live inside the `packages/` folder.
+The Kexra website is statically generated from this repository.
 
-To contribute a package:
+Each package must include:
 
-1. Fork the repo
-2. Add your package under `packages/`
-3. Open a pull request
-
-## Package Documentation & Websites
-
-Every package must include:
-
-- Source code (`packages/<name>/`)
-- Documentation (`site/packages/<name>/README.md`)
-- Website content (`site/packages/<name>/website/index.md`)
+- source code (`packages/<name>/`)
+- documentation (`site/packages/<name>/README.md`)
+- website content (`site/packages/<name>/website/index.md`)
 
 ## What is Kexra?
 

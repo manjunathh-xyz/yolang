@@ -1,0 +1,39 @@
+import type { Metadata } from 'next';
+import './globals.css';
+
+export const metadata: Metadata = {
+  title: 'Kexra',
+  description: 'A small, expressive scripting language',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body className="min-h-screen bg-gray-50">
+        <header className="bg-white shadow-sm">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center py-4">
+              <div className="flex items-center">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  <a href="/">Kexra</a>
+                </h1>
+              </div>
+              <nav className="flex space-x-4">
+                <a href="/packages" className="text-gray-600 hover:text-gray-900">
+                  Packages
+                </a>
+                <a
+                  href="https://github.com/manjunathh-xyz/kexra"
+                  className="text-gray-600 hover:text-gray-900"
+                >
+                  GitHub
+                </a>
+              </nav>
+            </div>
+          </div>
+        </header>
+        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
+      </body>
+    </html>
+  );
+}
