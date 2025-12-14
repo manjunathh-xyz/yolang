@@ -17,8 +17,12 @@ jobs:
         run: cd docs-site && npm install
       - name: Build docs
         run: cd docs-site && npm run build
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs-site/build
+      - name: Copy build to docs
+        run: cp -r docs-site/build/* docs/
+      - name: Commit and push docs
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          git add docs/
+          git commit -m "Deploy docs" || echo "No changes to commit"
+          git push
